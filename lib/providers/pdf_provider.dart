@@ -52,16 +52,13 @@ class PdfProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // 1. Handle Permissions
+      // 1. Check Permissions
       if (Platform.isAndroid) {
-        if (!await Permission.manageExternalStorage.isGranted) {
-          final status = await Permission.manageExternalStorage.request();
-          if (status.isPermanentlyDenied) {
-            await openAppSettings();
-          }
-        }
-        if (!await Permission.storage.isGranted) {
-          await Permission.storage.request();
+        if (!await Permission.manageExternalStorage.isGranted && 
+            !await Permission.storage.isGranted) {
+           _isScanning = false;
+           notifyListeners();
+           return;
         }
       }
 
