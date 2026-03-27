@@ -1,7 +1,10 @@
+import 'dart:developer';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
+import 'package:in_app_update/in_app_update.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:redpdf_tools/screens/pdf_view_screen.dart';
 import '../providers/pdf_provider.dart';
@@ -16,7 +19,42 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    if (!kDebugMode) {
+      _checkUpdate();
+    }
+  }
+
+  Future<void> _checkUpdate() async {
+    try {
+      final info = await InAppUpdate.checkForUpdate();
+
+      switch (info.updateAvailability) {
+        case UpdateAvailability.updateAvailable:
+          await InAppUpdate.performImmediateUpdate();
+          break;
+
+        case UpdateAvailability.updateNotAvailable:
+          log("No update available");
+          break;
+
+        case UpdateAvailability.developerTriggeredUpdateInProgress:
+          await InAppUpdate.performImmediateUpdate();
+          break;
+
+        default:
+          break;
+      }
+    } catch (e) {
+      log("Error checking update: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

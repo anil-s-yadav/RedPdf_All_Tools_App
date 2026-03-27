@@ -1,7 +1,7 @@
 name: redpdf_tools
 description: "A new Flutter project."
-publish_to: 'none'
-version: 0.1.0
+publish_to: "none"
+version: 0.1.1+2
 
 environment:
   sdk: ^3.10.4
@@ -9,6 +9,7 @@ environment:
 dependencies:
   camera: ^0.12.0
   cloud_firestore: ^6.1.2
+  in_app_update: ^4.2.5
   cross_file: ^0.3.5+2
   file_picker: ^10.3.10
   firebase_auth: ^6.1.4
@@ -47,4 +48,3 @@ flutter:
   uses-material-design: true
   assets:
     - assets/google_fonts/
-    

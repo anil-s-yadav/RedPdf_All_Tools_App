@@ -5,7 +5,7 @@
   "packages": [
     {
       "name": "redpdf_tools",
-      "version": "0.1.0",
+      "version": "0.1.1+2",
       "dependencies": [
         "camera",
         "cloud_firestore",
@@ -20,6 +20,7 @@
         "google_sign_in",
         "image_cropper",
         "image_picker",
+        "in_app_update",
         "intl",
         "media_scanner",
         "open_filex",
@@ -385,6 +386,13 @@
       ]
     },
     {
+      "name": "in_app_update",
+      "version": "4.2.5",
+      "dependencies": [
+        "flutter"
+      ]
+    },
+    {
       "name": "cloud_firestore",
       "version": "6.1.2",
       "dependencies": [
@@ -469,7 +477,7 @@
     },
     {
       "name": "matcher",
-      "version": "0.12.17",
+      "version": "0.12.19",
       "dependencies": [
         "async",
         "meta",
@@ -480,7 +488,7 @@
     },
     {
       "name": "test_api",
-      "version": "0.7.7",
+      "version": "0.7.10",
       "dependencies": [
         "async",
         "boolean_selector",
@@ -1128,14 +1136,14 @@
     },
     {
       "name": "material_color_utilities",
-      "version": "0.11.1",
+      "version": "0.13.0",
       "dependencies": [
         "collection"
       ]
     },
     {
       "name": "characters",
-      "version": "1.4.0",
+      "version": "1.4.1",
       "dependencies": []
     },
     {
