@@ -242,7 +242,6 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
           style: TextStyle(color: appColors.text, fontWeight: FontWeight.bold),
         ),
         iconTheme: IconThemeData(color: appColors.text),
-        actions: const [Icon(Icons.more_vert), SizedBox(width: 16)],
       ),
       body: SafeArea(
         child: SingleChildScrollView(

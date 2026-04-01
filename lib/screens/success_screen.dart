@@ -1,9 +1,8 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:redpdf_tools/screens/pdf_view_screen.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:redpdf_tools/theme/app_theme.dart';
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import 'package:pdfrx/pdfrx.dart';
 import '../utils/file_utils.dart';
 import 'package:path/path.dart' as p;
 
@@ -77,6 +76,59 @@ class SuccessScreen extends StatelessWidget {
         ),
       );
     }
+  }
+
+  Future<String?> _askPassword(BuildContext context) async {
+    final appColors = Theme.of(context).appColors;
+    String? password;
+    final textController = TextEditingController();
+    
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: appColors.surface,
+          title: Text(
+            'Password Required',
+            style: TextStyle(color: appColors.text, fontWeight: FontWeight.bold),
+          ),
+          content: TextField(
+            controller: textController,
+            obscureText: true,
+            decoration: InputDecoration(
+              hintText: 'Enter PDF password',
+              hintStyle: TextStyle(color: appColors.subtitle),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: appColors.divider ?? Colors.grey),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: appColors.primary ?? Colors.blue),
+              ),
+            ),
+            style: TextStyle(color: appColors.text),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                password = null;
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel', style: TextStyle(color: appColors.subtitle)),
+            ),
+            TextButton(
+              onPressed: () {
+                password = textController.text;
+                Navigator.of(context).pop();
+              },
+              child: Text('Open', style: TextStyle(color: appColors.primary)),
+            ),
+          ],
+        );
+      },
+    );
+    return password;
   }
 
   @override
@@ -225,12 +277,9 @@ class SuccessScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(14),
                         child: AbsorbPointer(
                           // Prevent scrolling/interaction, just show the first part
-                          child: SfPdfViewer.file(
-                            File(filePath),
-                            canShowScrollHead: false,
-                            canShowScrollStatus: false,
-                            enableDoubleTapZooming: false,
-                            enableTextSelection: false,
+                          child: PdfViewer.file(
+                            filePath,
+                            passwordProvider: () => _askPassword(context),
                           ),
                         ),
                       ),

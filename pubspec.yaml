@@ -1,7 +1,7 @@
 name: redpdf_tools
 description: "A new Flutter project."
 publish_to: "none"
-version: 1.0.3+3
+version: 1.0.4+4
 
 environment:
   sdk: ^3.10.4
@@ -35,9 +35,9 @@ dependencies:
   share_plus: ^12.0.1
   shared_preferences: ^2.5.4
   syncfusion_flutter_pdf: ^32.2.7
-  syncfusion_flutter_pdfviewer: ^32.2.7
   uuid: ^4.5.3
   url_launcher: ^6.3.2
+  pdfrx: ^2.2.24
 
 dev_dependencies:
   flutter_test:

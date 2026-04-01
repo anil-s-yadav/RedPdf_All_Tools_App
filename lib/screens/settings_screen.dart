@@ -493,7 +493,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildCardContainer(
                 context: context,
                 children: [
-                  //  _buildListTile(context, Icons.star_border, 'Rate App'),
+                  _buildListTile(
+                    context,
+                    Icons.star_border,
+                    'Rate App  🌟🌟🌟🌟🌟',
+                    trailing: const Icon(
+                      Icons.open_in_new,
+                      size: 20,
+                      color: Color(0xFF94A3B8),
+                    ),
+                    onTap: () => _launchUrl(
+                      "https://play.google.com/store/apps/details?id=com.legendarysoftware.imagetopdf",
+                    ),
+                  ),
                   _buildListTile(
                     context,
                     Icons.help_outline,
