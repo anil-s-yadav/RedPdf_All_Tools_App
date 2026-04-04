@@ -7,12 +7,12 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'dart:typed_data';
+import 'package:redpdf_tools/providers/pdf_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'dart:math' as math;
-import '../providers/pdf_provider.dart';
-import '../providers/settings_provider.dart';
-import '../models/pdf_history.dart';
+import 'package:redpdf_tools/providers/settings_provider.dart';
+import 'package:redpdf_tools/models/pdf_history.dart';
 import '../utils/file_utils.dart';
 import 'package:path/path.dart' as p;
 

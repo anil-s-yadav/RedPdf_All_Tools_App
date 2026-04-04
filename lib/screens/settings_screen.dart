@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:redpdf_tools/screens/privicypolicy_screen.dart';
 import 'package:redpdf_tools/screens/termservice_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../providers/settings_provider.dart';
+import 'package:redpdf_tools/providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
 import 'package:redpdf_tools/theme/app_theme.dart';
 
@@ -576,7 +576,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 24),
               const Center(
                 child: Text(
-                  'Version 1.0.4 (Build 4)',
+                  'Version 1.0.5 (5)',
                   style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
                 ),
               ),

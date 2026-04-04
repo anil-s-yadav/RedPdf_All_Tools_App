@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:redpdf_tools/providers/pdf_provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -8,8 +9,8 @@ import 'success_screen.dart';
 import '../utils/file_utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
-import '../providers/pdf_provider.dart';
-import '../models/pdf_history.dart';
+
+import 'package:redpdf_tools/models/pdf_history.dart';
 import 'package:uuid/uuid.dart';
 
 class UnlockPdfScreen extends StatefulWidget {

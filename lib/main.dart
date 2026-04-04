@@ -1,10 +1,13 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:redpdf_tools/firebase_options.dart';
-import '../providers/pdf_provider.dart';
-import '../providers/settings_provider.dart';
-import '../providers/theme_provider.dart';
+import 'package:redpdf_tools/providers/pdf_provider.dart';
+import 'package:redpdf_tools/providers/theme_provider.dart';
+// import '../providers/pdf_provider.dart';
+import 'package:redpdf_tools/providers/settings_provider.dart';
+// import '../providers/theme_provider.dart';
 import 'screens/navigation.dart';
 import 'package:redpdf_tools/theme/app_theme.dart';
 
@@ -48,7 +51,7 @@ class MyApp extends StatelessWidget {
           ) {
             return MaterialApp(
               title: 'RedPdf',
-              debugShowCheckedModeBanner: false,
+              debugShowCheckedModeBanner: kDebugMode,
               themeMode: themeProvider.themeMode,
               theme: AppTheme.lightMode,
               darkTheme: AppTheme.darkMode,
