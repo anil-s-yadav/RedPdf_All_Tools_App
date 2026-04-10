@@ -6,7 +6,9 @@ import 'package:pdfrx/pdfrx.dart';
 import '../utils/file_utils.dart';
 import 'package:path/path.dart' as p;
 
-class SuccessScreen extends StatelessWidget {
+import 'package:redpdf_tools/utils/rate_us_utils.dart';
+
+class SuccessScreen extends StatefulWidget {
   final String operation;
   final String filePath;
   final String fileName;
@@ -22,6 +24,19 @@ class SuccessScreen extends StatelessWidget {
     required this.totalPages,
   });
 
+  @override
+  State<SuccessScreen> createState() => _SuccessScreenState();
+}
+
+class _SuccessScreenState extends State<SuccessScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      RateUsUtils.showRateUsDialog(context);
+    });
+  }
+
   String _formatSize(int bytes) {
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
@@ -29,14 +44,14 @@ class SuccessScreen extends StatelessWidget {
   }
 
   void _sharePdf() {
-    Share.shareXFiles([XFile(filePath)], text: 'Check out my document!');
+    Share.shareXFiles([XFile(widget.filePath)], text: 'Check out my document!');
   }
 
   void _openPdf(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => PdfViewScreen(path: filePath, title: fileName),
+        builder: (context) => PdfViewScreen(path: widget.filePath, title: widget.fileName),
       ),
     );
   }
@@ -48,8 +63,8 @@ class SuccessScreen extends StatelessWidget {
   Future<void> _saveToDownloads(BuildContext context) async {
     try {
       final savedPath = await FileUtils.saveToDevice(
-        sourcePath: filePath,
-        fileName: fileName,
+        sourcePath: widget.filePath,
+        fileName: widget.fileName,
       );
 
       if (savedPath != null) {
@@ -178,7 +193,7 @@ class SuccessScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               Text(
-                'PDF $operation Successfully!',
+                'PDF ${widget.operation} Successfully!',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -225,7 +240,7 @@ class SuccessScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                fileName,
+                                widget.fileName,
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 18,
@@ -236,7 +251,7 @@ class SuccessScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                '${_formatSize(fileSize)} • $totalPages Pages',
+                                '${_formatSize(widget.fileSize)} • ${widget.totalPages} Pages',
                                 style: TextStyle(
                                   color: appColors.subtitle,
                                   fontSize: 14,
@@ -278,7 +293,7 @@ class SuccessScreen extends StatelessWidget {
                         child: AbsorbPointer(
                           // Prevent scrolling/interaction, just show the first part
                           child: PdfViewer.file(
-                            filePath,
+                            widget.filePath,
                             passwordProvider: () => _askPassword(context),
                           ),
                         ),
