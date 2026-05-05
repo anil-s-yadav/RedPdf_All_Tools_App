@@ -33,6 +33,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _saveToDownloads(context);
       RateUsUtils.showRateUsDialog(context);
     });
   }
@@ -51,7 +52,8 @@ class _SuccessScreenState extends State<SuccessScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => PdfViewScreen(path: widget.filePath, title: widget.fileName),
+        builder: (context) =>
+            PdfViewScreen(path: widget.filePath, title: widget.fileName),
       ),
     );
   }
@@ -97,7 +99,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
     final appColors = Theme.of(context).appColors;
     String? password;
     final textController = TextEditingController();
-    
+
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -106,7 +108,10 @@ class _SuccessScreenState extends State<SuccessScreen> {
           backgroundColor: appColors.surface,
           title: Text(
             'Password Required',
-            style: TextStyle(color: appColors.text, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: appColors.text,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           content: TextField(
             controller: textController,
@@ -130,7 +135,10 @@ class _SuccessScreenState extends State<SuccessScreen> {
                 password = null;
                 Navigator.of(context).pop();
               },
-              child: Text('Cancel', style: TextStyle(color: appColors.subtitle)),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: appColors.subtitle),
+              ),
             ),
             TextButton(
               onPressed: () {
@@ -174,11 +182,11 @@ class _SuccessScreenState extends State<SuccessScreen> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
         child: SafeArea(
           child: Column(
             children: [
-              const SizedBox(height: 20),
+              // const SizedBox(height: 20),
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
@@ -201,19 +209,21 @@ class _SuccessScreenState extends State<SuccessScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Text(
-                'Your document has been processed\nand is ready for use.',
+                'Your document has been processed\nSaved location: Download/RedPdf/',
                 style: TextStyle(
-                  fontSize: 16,
+                  // fontSize: 16,
                   color: appColors.subtitle,
                   height: 1.4,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 40),
-              Container(
-                decoration: BoxDecoration(
+              const SizedBox(height: 20),
+              GestureDetector(
+                onTap: () => _openPdf(context),
+                child: Container(
+                  decoration: BoxDecoration(
                   color: appColors.surface,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
@@ -227,71 +237,19 @@ class _SuccessScreenState extends State<SuccessScreen> {
                     color: appColors.divider ?? Colors.transparent,
                   ),
                 ),
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                padding: const EdgeInsets.all(10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  spacing: 14,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                widget.fileName,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  color: appColors.text,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${_formatSize(widget.fileSize)} • ${widget.totalPages} Pages',
-                                style: TextStyle(
-                                  color: appColors.subtitle,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: appColors.primary!.withOpacity(0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.picture_as_pdf,
-                            color: appColors.primary,
-                            size: 20,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Container(
-                      width: double.infinity,
-                      height: 200,
-                      decoration: BoxDecoration(
-                        color:
-                            appColors.divider?.withOpacity(0.1) ??
-                            Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: appColors.divider ?? Colors.grey.shade200,
-                          width: 2,
-                        ),
-                      ),
+                    SizedBox(
+                      width: 50,
+                      height: 50,
+
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadiusGeometry.circular(10),
                         child: AbsorbPointer(
-                          // Prevent scrolling/interaction, just show the first part
                           child: PdfViewer.file(
                             widget.filePath,
                             passwordProvider: () => _askPassword(context),
@@ -299,97 +257,144 @@ class _SuccessScreenState extends State<SuccessScreen> {
                         ),
                       ),
                     ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.fileName,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: appColors.text,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${_formatSize(widget.fileSize)} • ${widget.totalPages} Pages',
+                            style: TextStyle(
+                              color: appColors.subtitle,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: appColors.primary!.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.open_in_new,
+                        color: appColors.primary,
+                        size: 20,
+                      ),
+                    ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 40),
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton.icon(
-                  onPressed: _sharePdf,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: appColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                    elevation: 0,
-                  ),
-                  icon: const Icon(Icons.share, color: Colors.white),
-                  label: const Text(
-                    'Share PDF',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
                 ),
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: 56,
-                      child: TextButton.icon(
-                        onPressed: () => _openPdf(context),
-                        style: TextButton.styleFrom(
-                          backgroundColor: appColors.primary!.withOpacity(0.1),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(28),
-                          ),
-                        ),
-                        icon: Icon(Icons.open_in_new, color: appColors.primary),
-                        label: Text(
-                          'Open',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: appColors.primary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: SizedBox(
-                      height: 56,
-                      child: TextButton.icon(
-                        onPressed: () => _saveToDownloads(context),
-                        style: TextButton.styleFrom(
-                          backgroundColor: appColors.primary!.withOpacity(0.1),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(28),
-                          ),
-                        ),
-                        icon: Icon(Icons.download, color: appColors.primary),
-                        label: Text(
-                          'Save',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: appColors.primary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
-              TextButton.icon(
-                onPressed: () => _goHome(context),
-                icon: Icon(Icons.home, color: appColors.subtitle),
-                label: Text(
-                  'Back to Home',
-                  style: TextStyle(color: appColors.subtitle, fontSize: 16),
-                ),
-              ),
-              const SizedBox(height: 40),
+              // const SizedBox(height: 40),
+
+              // const SizedBox(height: 32),
+              // TextButton.icon(
+              //   onPressed: () => _goHome(context),
+              //   icon: Icon(Icons.home, color: appColors.subtitle),
+              //   label: Text(
+              //     'Back to Home',
+              //     style: TextStyle(color: appColors.subtitle, fontSize: 16),
+              //   ),
+              // ),
+              // const SizedBox(height: 40),
             ],
           ),
+        ),
+      ),
+      bottomSheet: Padding(
+        padding: EdgeInsetsGeometry.only(left: 20, right: 20, bottom: 50),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton.icon(
+                onPressed: _sharePdf,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: appColors.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(28),
+                  ),
+                  elevation: 0,
+                ),
+                icon: const Icon(Icons.share, color: Colors.white),
+                label: const Text(
+                  'Share PDF',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 56,
+                    child: TextButton.icon(
+                      onPressed: () => _openPdf(context),
+                      style: TextButton.styleFrom(
+                        backgroundColor: appColors.primary!.withOpacity(0.1),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(28),
+                        ),
+                      ),
+                      icon: Icon(Icons.open_in_new, color: appColors.primary),
+                      label: Text(
+                        'Open',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: appColors.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: SizedBox(
+                    height: 56,
+                    child: TextButton.icon(
+                      onPressed: () => _saveToDownloads(context),
+                      style: TextButton.styleFrom(
+                        backgroundColor: appColors.primary!.withOpacity(0.1),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(28),
+                        ),
+                      ),
+                      icon: Icon(Icons.download, color: appColors.primary),
+                      label: Text(
+                        'Save Again',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: appColors.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

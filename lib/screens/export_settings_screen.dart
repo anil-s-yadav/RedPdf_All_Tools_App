@@ -2,13 +2,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:redpdf_tools/theme/app_theme.dart';
 import 'success_screen.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
+import 'processing_screen.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart' as spdf;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'dart:typed_data';
 import 'package:redpdf_tools/providers/pdf_provider.dart';
-import 'package:uuid/uuid.dart';
+
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'dart:math' as math;
 import 'package:redpdf_tools/providers/settings_provider.dart';
@@ -50,101 +50,130 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
     return await file.readAsBytes();
   }
 
-  PdfPageFormat _getPageFormat(SettingsProvider settings) {
-    PdfPageFormat format;
+  Size _getPageFormat(SettingsProvider settings) {
+    Size format;
     switch (settings.defaultPageSize) {
       case PdfPageSize.a4:
-        format = PdfPageFormat.a4;
+        format = spdf.PdfPageSize.a4;
         break;
       case PdfPageSize.letter:
-        format = PdfPageFormat.letter;
+        format = spdf.PdfPageSize.letter;
         break;
       case PdfPageSize.a3:
-        format = PdfPageFormat.a3;
+        format = spdf.PdfPageSize.a3;
         break;
       case PdfPageSize.legal:
-        format = PdfPageFormat.legal;
+        format = spdf.PdfPageSize.legal;
         break;
     }
-
+    
+    // Syncfusion handles orientation separately, but we can return the size object here.
+    // If it's landscape, we swap width and height.
     if (settings.defaultOrientation == PdfPageOrientation.landscape) {
-      return format.landscape;
+      return Size(format.height, format.width);
     }
     return format;
   }
 
-  Future<void> _generateAndSavePdf() async {
-    setState(() => _isGenerating = true);
+  Future<ProcessResult> _generateAndSavePdfTask() async {
+    final settings = Provider.of<SettingsProvider>(context, listen: false);
+    final document = spdf.PdfDocument();
+    final pageFormat = _getPageFormat(settings);
+    document.pageSettings.size = pageFormat;
+    document.pageSettings.margins.all = 0;
 
-    try {
-      final settings = Provider.of<SettingsProvider>(context, listen: false);
-      final pdf = pw.Document();
-      final pageFormat = _getPageFormat(settings);
-
-      for (var imageFile in widget.images) {
-        final imageBytes = await _processImage(imageFile);
-        final image = pw.MemoryImage(imageBytes);
-
-        pdf.addPage(
-          pw.Page(
-            pageFormat: pageFormat,
-            build: (pw.Context context) {
-              return pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain));
-            },
-          ),
-        );
+    // Security Settings
+    if (_securityEnabled) {
+      final security = document.security;
+      if (_userPasswordController.text.isNotEmpty) {
+        security.userPassword = _userPasswordController.text;
       }
-
-      final bytes = await pdf.save();
-
-      final dir = await getApplicationDocumentsDirectory();
-      final name = _fileNameController.text.trim().isEmpty
-          ? 'Untitled_Document'
-          : _fileNameController.text;
-
-      final uniquePath = await FileUtils.getUniqueFilePath(
-        dir.path,
-        '$name.pdf',
-      );
-      final file = File(uniquePath);
-      final finalFileName = p.basename(uniquePath);
-
-      await file.writeAsBytes(bytes);
-
-      // Save to history
-      final history = PdfHistory(
-        id: Uuid().v4(),
-        title: finalFileName,
-        path: file.path,
-        sizeInBytes: bytes.length,
-        createdAt: DateTime.now(),
-      );
-
-      if (!mounted) return;
-      context.read<PdfProvider>().addHistory(history);
-
-      setState(() => _isGenerating = false);
-
-      // Go to Success Screen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => SuccessScreen(
-            operation: "Created",
-            filePath: file.path,
-            fileName: finalFileName,
-            fileSize: bytes.length,
-            totalPages: widget.images.length,
-          ),
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isGenerating = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error generating PDF: $e')));
+      if (_ownerPasswordController.text.isNotEmpty) {
+        security.ownerPassword = _ownerPasswordController.text;
+      }
+      if (!_allowPrinting) {
+        security.permissions.remove(spdf.PdfPermissionsFlags.print);
+      }
+      if (!_allowCopying) {
+        security.permissions.remove(spdf.PdfPermissionsFlags.copyContent);
+      }
     }
+
+    for (var imageFile in widget.images) {
+      final imageBytes = await _processImage(imageFile);
+      final spdf.PdfBitmap image = spdf.PdfBitmap(imageBytes);
+      
+      final spdf.PdfPage page = document.pages.add();
+      
+      final double imgWidth = image.width.toDouble();
+      final double imgHeight = image.height.toDouble();
+      final double pageWidth = page.getClientSize().width;
+      final double pageHeight = page.getClientSize().height;
+      
+      double drawWidth = pageWidth;
+      double drawHeight = (imgHeight / imgWidth) * pageWidth;
+      
+      if (drawHeight > pageHeight) {
+         drawHeight = pageHeight;
+         drawWidth = (imgWidth / imgHeight) * pageHeight;
+      }
+      
+      final double x = (pageWidth - drawWidth) / 2;
+      final double y = (pageHeight - drawHeight) / 2;
+
+      page.graphics.drawImage(image, Rect.fromLTWH(x, y, drawWidth, drawHeight));
+    }
+
+    final List<int> bytesList = document.saveSync();
+    final Uint8List bytes = Uint8List.fromList(bytesList);
+    document.dispose();
+
+    final dir = await getApplicationDocumentsDirectory();
+    final name = _fileNameController.text.trim().isEmpty
+        ? 'Untitled_Document'
+        : _fileNameController.text;
+
+    final uniquePath = await FileUtils.getUniqueFilePath(
+      dir.path,
+      '$name.pdf',
+    );
+    final file = File(uniquePath);
+    final finalFileName = p.basename(uniquePath);
+
+    await file.writeAsBytes(bytes);
+
+    // Save to history
+    final history = PdfHistory(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      title: finalFileName,
+      path: file.path,
+      sizeInBytes: bytes.length,
+      createdAt: DateTime.now(),
+    );
+
+    if (mounted) {
+      context.read<PdfProvider>().addHistory(history);
+    }
+
+    return ProcessResult(
+      operation: "Created",
+      filePath: file.path,
+      fileName: finalFileName,
+      fileSize: bytes.length,
+      totalPages: widget.images.length,
+    );
+  }
+
+  void _startProcessing() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProcessingScreen(
+          title: 'Generating PDF...',
+          task: _generateAndSavePdfTask,
+        ),
+      ),
+    );
   }
 
   double _getTotalOriginalSize() {
@@ -536,20 +565,11 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: _isGenerating ? null : _generateAndSavePdf,
-                icon: _isGenerating
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.download, color: Colors.white),
-                label: Text(
-                  _isGenerating ? 'GENERATING...' : 'Save & Export PDF',
-                  style: const TextStyle(
+                onPressed: _startProcessing,
+                icon: const Icon(Icons.download, color: Colors.white),
+                label: const Text(
+                  'Save & Export PDF',
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,

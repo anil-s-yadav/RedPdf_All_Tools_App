@@ -6,11 +6,12 @@ import 'dart:io';
 import 'package:redpdf_tools/providers/pdf_provider.dart';
 import 'package:redpdf_tools/theme/app_theme.dart';
 import 'success_screen.dart';
+import 'processing_screen.dart';
 import '../utils/file_utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 import 'package:redpdf_tools/models/pdf_history.dart';
-import 'package:uuid/uuid.dart';
+
 
 class LockPdfScreen extends StatefulWidget {
   const LockPdfScreen({super.key});
@@ -37,83 +38,68 @@ class _LockPdfScreenState extends State<LockPdfScreen> {
     }
   }
 
-  Future<void> _lockPdf() async {
-    if (_selectedPdf == null || _passwordController.text.isEmpty) return;
-
-    // final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    // final canProceed = await authProvider.checkAndIncrementLimit();
-
-    // if (!mounted) return;
-
-    // if (!canProceed) {
-    //   showLimitReachedDialog(context, authProvider.isAuthenticated);
-    //   return;
-    // }
-
-    setState(() => _isProcessing = true);
-
-    try {
-      final documentBytes = await _selectedPdf!.readAsBytes();
-      final document = PdfDocument(inputBytes: documentBytes);
-
-      // Apply Security
-      final security = document.security;
-      security.userPassword = _passwordController.text;
-      security.ownerPassword = _passwordController.text;
-
-      final bytes = await document.save();
-      final pageCount = document.pages.count;
-      document.dispose();
-
-      final dir = await getApplicationDocumentsDirectory();
-      final originalName = _selectedPdf!.path
-          .split(Platform.pathSeparator)
-          .last;
-      final fileName = 'Locked_$originalName';
-
-      final uniquePath = await FileUtils.getUniqueFilePath(dir.path, fileName);
-      final newFile = File(uniquePath);
-      final finalFileName = p.basename(uniquePath);
-
-      await newFile.writeAsBytes(bytes);
-
-      // Save to history
-      final history = PdfHistory(
-        id: Uuid().v4(),
-        title: finalFileName,
-        path: newFile.path,
-        sizeInBytes: bytes.length,
-        createdAt: DateTime.now(),
-      );
-
-      if (!mounted) return;
-      context.read<PdfProvider>().addHistory(history);
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => SuccessScreen(
-            operation: "Locked",
-            filePath: newFile.path,
-            fileName: finalFileName,
-            fileSize: bytes.length,
-            totalPages: pageCount,
-          ),
-        ),
-      );
-    } catch (e) {
-      debugPrint('Lock PDF error: $e');
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to lock PDF: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+  Future<ProcessResult> _lockPdfTask() async {
+    if (_selectedPdf == null || _passwordController.text.isEmpty) {
+      throw Exception("No PDF selected or password empty");
     }
 
-    if (!mounted) return;
-    setState(() => _isProcessing = false);
+    final documentBytes = await _selectedPdf!.readAsBytes();
+    final document = PdfDocument(inputBytes: documentBytes);
+
+    // Apply Security
+    final security = document.security;
+    security.userPassword = _passwordController.text;
+    security.ownerPassword = _passwordController.text;
+
+    final bytes = await document.save();
+    final pageCount = document.pages.count;
+    document.dispose();
+
+    final dir = await getApplicationDocumentsDirectory();
+    final originalName = _selectedPdf!.path
+        .split(Platform.pathSeparator)
+        .last;
+    final fileName = 'Locked_$originalName';
+
+    final uniquePath = await FileUtils.getUniqueFilePath(dir.path, fileName);
+    final newFile = File(uniquePath);
+    final finalFileName = p.basename(uniquePath);
+
+    await newFile.writeAsBytes(bytes);
+
+    // Save to history
+    final history = PdfHistory(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      title: finalFileName,
+      path: newFile.path,
+      sizeInBytes: bytes.length,
+      createdAt: DateTime.now(),
+    );
+
+    if (mounted) {
+      context.read<PdfProvider>().addHistory(history);
+    }
+
+    return ProcessResult(
+      operation: "Locked",
+      filePath: newFile.path,
+      fileName: finalFileName,
+      fileSize: bytes.length,
+      totalPages: pageCount,
+    );
+  }
+
+  void _startProcessing() {
+    if (_selectedPdf == null || _passwordController.text.isEmpty) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProcessingScreen(
+          title: 'Locking PDF...',
+          task: _lockPdfTask,
+        ),
+      ),
+    );
   }
 
   @override
@@ -186,20 +172,18 @@ class _LockPdfScreenState extends State<LockPdfScreen> {
                   obscureText: isVisible,
                 ),
                 const SizedBox(height: 24),
-                _isProcessing
-                    ? const CircularProgressIndicator()
-                    : ElevatedButton(
-                        onPressed: _lockPdf,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent,
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size(double.infinity, 50),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text('Lock PDF'),
-                      ),
+                ElevatedButton(
+                  onPressed: _startProcessing,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Lock PDF'),
+                ),
               ],
             ],
           ),
