@@ -27,3 +27,10 @@
 # In-App Update
 -keep class com.google.android.play.** { *; }
 -dontwarn com.google.android.play.**
+
+# uCrop (Image Cropper) & OkHttp
+-keep class com.yalantis.ucrop.** { *; }
+-dontwarn com.yalantis.ucrop.**
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-dontwarn javax.annotation.**
