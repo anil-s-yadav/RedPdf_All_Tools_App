@@ -34,20 +34,6 @@ class FileUtils {
     required String fileName,
   }) async {
     try {
-      // 1. Handle Permissions for Android
-      if (Platform.isAndroid) {
-        if (!await Permission.manageExternalStorage.isGranted) {
-          final status = await Permission.manageExternalStorage.request();
-          if (!status.isGranted) {
-            throw Exception('Storage permission denied');
-          }
-        }
-        if (!await Permission.storage.isGranted) {
-          await Permission.storage.request();
-        }
-      }
-
-      // 2. Get Downloads Path
       String downloadsPath;
       if (Platform.isAndroid) {
         downloadsPath = '/storage/emulated/0/Download';
@@ -59,29 +45,48 @@ class FileUtils {
         downloadsPath = dir.path;
       }
 
-      // 3. Create RedPdf folder
-      final redPdfDir = Directory('$downloadsPath/RedPdf');
-      if (!await redPdfDir.exists()) {
-        await redPdfDir.create(recursive: true);
+      Future<String> performSave() async {
+        final redPdfDir = Directory('$downloadsPath/RedPdf');
+        if (!await redPdfDir.exists()) {
+          await redPdfDir.create(recursive: true);
+        }
+
+        final uniquePath = await getUniqueFilePath(redPdfDir.path, fileName);
+        final currentFile = File(sourcePath);
+        await currentFile.copy(uniquePath);
+
+        if (Platform.isAndroid) {
+          try {
+            await MediaScanner.loadMedia(path: uniquePath);
+          } catch (e) {
+            debugPrint('Media scan error: $e');
+          }
+        }
+        return uniquePath;
       }
 
-      // 4. Get unique path to avoid overwriting
-      final uniquePath = await getUniqueFilePath(redPdfDir.path, fileName);
-
-      // 5. Copy file
-      final currentFile = File(sourcePath);
-      await currentFile.copy(uniquePath);
-
-      // 6. Scan media to make it visible in Android
-      if (Platform.isAndroid) {
-        try {
-          await MediaScanner.loadMedia(path: uniquePath);
-        } catch (e) {
-          debugPrint('Media scan error: $e');
+      try {
+        // Try saving directly first. Android 11+ allows writing to Downloads without permissions.
+        return await performSave();
+      } catch (e) {
+        if (Platform.isAndroid) {
+          // Fallback for older Android versions (Android 10 and below)
+          final status = await Permission.storage.request();
+          if (status.isGranted) {
+            return await performSave();
+          } else {
+            // Last resort
+            final manageStatus = await Permission.manageExternalStorage.request();
+            if (manageStatus.isGranted) {
+              return await performSave();
+            } else {
+              throw Exception('Storage permission denied');
+            }
+          }
+        } else {
+          rethrow;
         }
       }
-
-      return uniquePath;
     } catch (e) {
       rethrow;
     }
