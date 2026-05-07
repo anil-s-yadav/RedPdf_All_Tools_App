@@ -1,13 +1,14 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:redpdf_tools/screens/pdf_view_screen.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:redpdf_tools/theme/app_theme.dart';
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import 'package:pdfrx/pdfrx.dart';
 import '../utils/file_utils.dart';
 import 'package:path/path.dart' as p;
 
-class SuccessScreen extends StatelessWidget {
+import 'package:redpdf_tools/utils/rate_us_utils.dart';
+
+class SuccessScreen extends StatefulWidget {
   final String operation;
   final String filePath;
   final String fileName;
@@ -23,6 +24,20 @@ class SuccessScreen extends StatelessWidget {
     required this.totalPages,
   });
 
+  @override
+  State<SuccessScreen> createState() => _SuccessScreenState();
+}
+
+class _SuccessScreenState extends State<SuccessScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _saveToDownloads(context);
+      RateUsUtils.showRateUsDialog(context);
+    });
+  }
+
   String _formatSize(int bytes) {
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
@@ -30,14 +45,15 @@ class SuccessScreen extends StatelessWidget {
   }
 
   void _sharePdf() {
-    Share.shareXFiles([XFile(filePath)], text: 'Check out my document!');
+    Share.shareXFiles([XFile(widget.filePath)], text: 'Check out my document!');
   }
 
   void _openPdf(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => PdfViewScreen(path: filePath, title: fileName),
+        builder: (context) =>
+            PdfViewScreen(path: widget.filePath, title: widget.fileName),
       ),
     );
   }
@@ -49,8 +65,8 @@ class SuccessScreen extends StatelessWidget {
   Future<void> _saveToDownloads(BuildContext context) async {
     try {
       final savedPath = await FileUtils.saveToDevice(
-        sourcePath: filePath,
-        fileName: fileName,
+        sourcePath: widget.filePath,
+        fileName: widget.fileName,
       );
 
       if (savedPath != null) {
@@ -77,6 +93,65 @@ class SuccessScreen extends StatelessWidget {
         ),
       );
     }
+  }
+
+  Future<String?> _askPassword(BuildContext context) async {
+    final appColors = Theme.of(context).appColors;
+    String? password;
+    final textController = TextEditingController();
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: appColors.surface,
+          title: Text(
+            'Password Required',
+            style: TextStyle(
+              color: appColors.text,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: TextField(
+            controller: textController,
+            obscureText: true,
+            decoration: InputDecoration(
+              hintText: 'Enter PDF password',
+              hintStyle: TextStyle(color: appColors.subtitle),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: appColors.divider ?? Colors.grey),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: appColors.primary ?? Colors.blue),
+              ),
+            ),
+            style: TextStyle(color: appColors.text),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                password = null;
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: appColors.subtitle),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                password = textController.text;
+                Navigator.of(context).pop();
+              },
+              child: Text('Open', style: TextStyle(color: appColors.primary)),
+            ),
+          ],
+        );
+      },
+    );
+    return password;
   }
 
   @override
@@ -107,11 +182,11 @@ class SuccessScreen extends StatelessWidget {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
         child: SafeArea(
           child: Column(
             children: [
-              const SizedBox(height: 20),
+              // const SizedBox(height: 20),
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
@@ -126,7 +201,7 @@ class SuccessScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               Text(
-                'PDF $operation Successfully!',
+                'PDF ${widget.operation} Successfully!',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -134,19 +209,21 @@ class SuccessScreen extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Text(
-                'Your document has been processed\nand is ready for use.',
+                'Your document has been processed\nSaved location: Download/RedPdf/',
                 style: TextStyle(
-                  fontSize: 16,
+                  // fontSize: 16,
                   color: appColors.subtitle,
                   height: 1.4,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 40),
-              Container(
-                decoration: BoxDecoration(
+              const SizedBox(height: 20),
+              GestureDetector(
+                onTap: () => _openPdf(context),
+                child: Container(
+                  decoration: BoxDecoration(
                   color: appColors.surface,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
@@ -160,172 +237,164 @@ class SuccessScreen extends StatelessWidget {
                     color: appColors.divider ?? Colors.transparent,
                   ),
                 ),
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                padding: const EdgeInsets.all(10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  spacing: 14,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                fileName,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  color: appColors.text,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${_formatSize(fileSize)} • $totalPages Pages',
-                                style: TextStyle(
-                                  color: appColors.subtitle,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
+                    SizedBox(
+                      width: 50,
+                      height: 50,
+
+                      child: ClipRRect(
+                        borderRadius: BorderRadiusGeometry.circular(10),
+                        child: AbsorbPointer(
+                          child: PdfViewer.file(
+                            widget.filePath,
+                            passwordProvider: () => _askPassword(context),
                           ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: appColors.primary!.withOpacity(0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.picture_as_pdf,
-                            color: appColors.primary,
-                            size: 20,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Container(
-                      width: double.infinity,
-                      height: 200,
-                      decoration: BoxDecoration(
-                        color:
-                            appColors.divider?.withOpacity(0.1) ??
-                            Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: appColors.divider ?? Colors.grey.shade200,
-                          width: 2,
                         ),
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
-                        child: AbsorbPointer(
-                          // Prevent scrolling/interaction, just show the first part
-                          child: SfPdfViewer.file(
-                            File(filePath),
-                            canShowScrollHead: false,
-                            canShowScrollStatus: false,
-                            enableDoubleTapZooming: false,
-                            enableTextSelection: false,
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.fileName,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: appColors.text,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${_formatSize(widget.fileSize)} • ${widget.totalPages} Pages',
+                            style: TextStyle(
+                              color: appColors.subtitle,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: appColors.primary!.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.open_in_new,
+                        color: appColors.primary,
+                        size: 20,
                       ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 40),
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton.icon(
-                  onPressed: _sharePdf,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: appColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                    elevation: 0,
-                  ),
-                  icon: const Icon(Icons.share, color: Colors.white),
-                  label: const Text(
-                    'Share PDF',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
                 ),
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: 56,
-                      child: TextButton.icon(
-                        onPressed: () => _openPdf(context),
-                        style: TextButton.styleFrom(
-                          backgroundColor: appColors.primary!.withOpacity(0.1),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(28),
-                          ),
-                        ),
-                        icon: Icon(Icons.open_in_new, color: appColors.primary),
-                        label: Text(
-                          'Open',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: appColors.primary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: SizedBox(
-                      height: 56,
-                      child: TextButton.icon(
-                        onPressed: () => _saveToDownloads(context),
-                        style: TextButton.styleFrom(
-                          backgroundColor: appColors.primary!.withOpacity(0.1),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(28),
-                          ),
-                        ),
-                        icon: Icon(Icons.download, color: appColors.primary),
-                        label: Text(
-                          'Save',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: appColors.primary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
-              TextButton.icon(
-                onPressed: () => _goHome(context),
-                icon: Icon(Icons.home, color: appColors.subtitle),
-                label: Text(
-                  'Back to Home',
-                  style: TextStyle(color: appColors.subtitle, fontSize: 16),
-                ),
-              ),
-              const SizedBox(height: 40),
+              // const SizedBox(height: 40),
+
+              // const SizedBox(height: 32),
+              // TextButton.icon(
+              //   onPressed: () => _goHome(context),
+              //   icon: Icon(Icons.home, color: appColors.subtitle),
+              //   label: Text(
+              //     'Back to Home',
+              //     style: TextStyle(color: appColors.subtitle, fontSize: 16),
+              //   ),
+              // ),
+              // const SizedBox(height: 40),
             ],
           ),
+        ),
+      ),
+      bottomSheet: Padding(
+        padding: EdgeInsetsGeometry.only(left: 20, right: 20, bottom: 50),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton.icon(
+                onPressed: _sharePdf,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: appColors.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(28),
+                  ),
+                  elevation: 0,
+                ),
+                icon: const Icon(Icons.share, color: Colors.white),
+                label: const Text(
+                  'Share PDF',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 56,
+                    child: TextButton.icon(
+                      onPressed: () => _openPdf(context),
+                      style: TextButton.styleFrom(
+                        backgroundColor: appColors.primary!.withOpacity(0.1),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(28),
+                        ),
+                      ),
+                      icon: Icon(Icons.open_in_new, color: appColors.primary),
+                      label: Text(
+                        'Open',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: appColors.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: SizedBox(
+                    height: 56,
+                    child: TextButton.icon(
+                      onPressed: () => _saveToDownloads(context),
+                      style: TextButton.styleFrom(
+                        backgroundColor: appColors.primary!.withOpacity(0.1),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(28),
+                        ),
+                      ),
+                      icon: Icon(Icons.download, color: appColors.primary),
+                      label: Text(
+                        'Save Again',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: appColors.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

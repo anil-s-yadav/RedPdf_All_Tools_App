@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:redpdf_tools/providers/pdf_provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:redpdf_tools/theme/app_theme.dart';
-import 'success_screen.dart';
+import 'processing_screen.dart';
 import '../utils/file_utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
-import '../providers/pdf_provider.dart';
-import '../models/pdf_history.dart';
-import 'package:uuid/uuid.dart';
+
+import 'package:redpdf_tools/models/pdf_history.dart';
 
 class UnlockPdfScreen extends StatefulWidget {
   const UnlockPdfScreen({super.key});
@@ -22,7 +22,6 @@ class UnlockPdfScreen extends StatefulWidget {
 class _UnlockPdfScreenState extends State<UnlockPdfScreen> {
   File? _selectedPdf;
   final TextEditingController _passwordController = TextEditingController();
-  bool _isProcessing = false;
   bool isVisible = true;
 
   Future<void> _pickPdf() async {
@@ -37,86 +36,67 @@ class _UnlockPdfScreenState extends State<UnlockPdfScreen> {
     }
   }
 
-  Future<void> _unlockPdf() async {
-    if (_selectedPdf == null || _passwordController.text.isEmpty) return;
-
-    // final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    // final canProceed = await authProvider.checkAndIncrementLimit();
-
-    if (!mounted) return;
-
-    // if (!canProceed) {
-    //   showLimitReachedDialog(context, authProvider.isAuthenticated);
-    //   return;
-    // }
-
-    setState(() => _isProcessing = true);
-
-    try {
-      final documentBytes = await _selectedPdf!.readAsBytes();
-      final document = PdfDocument(
-        inputBytes: documentBytes,
-        password: _passwordController.text,
-      );
-
-      // Unlocking by removing security block
-      final security = document.security;
-      security.userPassword = '';
-      security.ownerPassword = '';
-
-      final bytes = await document.save();
-      final pageCount = document.pages.count;
-      document.dispose();
-
-      final dir = await getApplicationDocumentsDirectory();
-      final originalName = _selectedPdf!.path
-          .split(Platform.pathSeparator)
-          .last;
-      final fileName = 'Unlocked_$originalName';
-
-      final uniquePath = await FileUtils.getUniqueFilePath(dir.path, fileName);
-      final newFile = File(uniquePath);
-      final finalFileName = p.basename(uniquePath);
-
-      await newFile.writeAsBytes(bytes);
-
-      // Save to history
-      final history = PdfHistory(
-        id: Uuid().v4(),
-        title: finalFileName,
-        path: newFile.path,
-        sizeInBytes: bytes.length,
-        createdAt: DateTime.now(),
-      );
-
-      if (!mounted) return;
-      context.read<PdfProvider>().addHistory(history);
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => SuccessScreen(
-            operation: "Unlocked",
-            filePath: newFile.path,
-            fileName: finalFileName,
-            fileSize: bytes.length,
-            totalPages: pageCount,
-          ),
-        ),
-      );
-    } catch (e) {
-      debugPrint('Unlock PDF error: $e');
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to unlock PDF: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+  Future<ProcessResult> _unlockPdfTask() async {
+    if (_selectedPdf == null || _passwordController.text.isEmpty) {
+      throw Exception("No PDF selected or password empty");
     }
 
-    if (!mounted) return;
-    setState(() => _isProcessing = false);
+    final documentBytes = await _selectedPdf!.readAsBytes();
+    final document = PdfDocument(
+      inputBytes: documentBytes,
+      password: _passwordController.text,
+    );
+
+    // Unlocking by removing security block
+    final security = document.security;
+    security.userPassword = '';
+    security.ownerPassword = '';
+
+    final bytes = await document.save();
+    final pageCount = document.pages.count;
+    document.dispose();
+
+    final dir = await getApplicationDocumentsDirectory();
+    final originalName = _selectedPdf!.path.split(Platform.pathSeparator).last;
+    final fileName = 'Unlocked_$originalName';
+
+    final uniquePath = await FileUtils.getUniqueFilePath(dir.path, fileName);
+    final newFile = File(uniquePath);
+    final finalFileName = p.basename(uniquePath);
+
+    await newFile.writeAsBytes(bytes);
+
+    // Save to history
+    final history = PdfHistory(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      title: finalFileName,
+      path: newFile.path,
+      sizeInBytes: bytes.length,
+      createdAt: DateTime.now(),
+    );
+
+    if (mounted) {
+      context.read<PdfProvider>().addHistory(history);
+    }
+
+    return ProcessResult(
+      operation: "Unlocked",
+      filePath: newFile.path,
+      fileName: finalFileName,
+      fileSize: bytes.length,
+      totalPages: pageCount,
+    );
+  }
+
+  void _startProcessing() {
+    if (_selectedPdf == null || _passwordController.text.isEmpty) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+            ProcessingScreen(title: 'Unlocking PDF...', task: _unlockPdfTask),
+      ),
+    );
   }
 
   @override
@@ -179,20 +159,18 @@ class _UnlockPdfScreenState extends State<UnlockPdfScreen> {
                     obscureText: isVisible,
                   ),
                   const SizedBox(height: 24),
-                  _isProcessing
-                      ? const CircularProgressIndicator()
-                      : ElevatedButton(
-                          onPressed: _unlockPdf,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size(double.infinity, 50),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text('Unlock PDF'),
-                        ),
+                  ElevatedButton(
+                    onPressed: _startProcessing,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text('Unlock PDF'),
+                  ),
                 ],
               ],
             ),

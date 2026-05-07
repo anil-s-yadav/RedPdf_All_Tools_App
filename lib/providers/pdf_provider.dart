@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/pdf_history.dart';
+import 'package:redpdf_tools/models/pdf_history.dart';
 
 class PdfProvider with ChangeNotifier {
   List<PdfHistory> _history = [];
@@ -54,11 +54,11 @@ class PdfProvider with ChangeNotifier {
     try {
       // 1. Check Permissions
       if (Platform.isAndroid) {
-        if (!await Permission.manageExternalStorage.isGranted && 
+        if (!await Permission.manageExternalStorage.isGranted &&
             !await Permission.storage.isGranted) {
-           _isScanning = false;
-           notifyListeners();
-           return;
+          _isScanning = false;
+          notifyListeners();
+          return;
         }
       }
 

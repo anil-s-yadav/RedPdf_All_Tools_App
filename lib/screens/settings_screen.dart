@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:redpdf_tools/screens/privicypolicy_screen.dart';
 import 'package:redpdf_tools/screens/termservice_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../providers/settings_provider.dart';
+import 'package:redpdf_tools/providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
 import 'package:redpdf_tools/theme/app_theme.dart';
 
@@ -493,7 +493,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildCardContainer(
                 context: context,
                 children: [
-                  //  _buildListTile(context, Icons.star_border, 'Rate App'),
+                  _buildListTile(
+                    context,
+                    Icons.star_border,
+                    'Rate App  🌟🌟🌟🌟🌟',
+                    trailing: const Icon(
+                      Icons.open_in_new,
+                      size: 20,
+                      color: Color(0xFF94A3B8),
+                    ),
+                    onTap: () => _launchUrl(
+                      "https://play.google.com/store/apps/details?id=com.legendarysoftware.imagetopdf",
+                    ),
+                  ),
                   _buildListTile(
                     context,
                     Icons.help_outline,
@@ -564,7 +576,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 24),
               const Center(
                 child: Text(
-                  'Version 1.0.0 (Build 1)',
+                  'Version 1.0.8 (8)',
                   style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
                 ),
               ),
