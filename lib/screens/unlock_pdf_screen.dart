@@ -124,7 +124,7 @@ class _UnlockPdfScreenState extends State<UnlockPdfScreen> {
                   icon: const Icon(Icons.picture_as_pdf),
                   label: const Text('Select Secured PDF'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal.withOpacity(0.1),
+                    backgroundColor: Colors.teal.withValues(alpha: 0.1),
                     foregroundColor: Colors.teal,
                     elevation: 0,
                   ),

@@ -82,7 +82,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: appColors.primary!.withOpacity(0.1),
+                color: appColors.primary!.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: SizedBox(

@@ -19,6 +19,19 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+// Force Java 17 on all Android library plugin subprojects to eliminate
+// "source/target value 8 is obsolete" warnings from bundled Flutter plugins.
+subprojects {
+    plugins.withId("com.android.library") {
+        extensions.configure(com.android.build.gradle.LibraryExtension::class.java) {
+            compileOptions {
+                sourceCompatibility = JavaVersion.VERSION_17
+                targetCompatibility = JavaVersion.VERSION_17
+            }
+        }
+    }
+}
+
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }

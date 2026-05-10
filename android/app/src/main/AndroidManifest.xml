@@ -1,8 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    <!-- image_picker uses the system Photo Picker (Android 13+) — no storage permission needed.      -->
+    <!-- file_picker uses SAF (Storage Access Framework) — no storage permission needed.              -->
+    <!-- Both work on all Android versions without any dangerous storage permissions.                 -->
     <application
         android:label="RedPdf - All Pdf Tools"
         android:name="${applicationName}"

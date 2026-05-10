@@ -5,7 +5,6 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:redpdf_tools/providers/pdf_provider.dart';
 import 'package:redpdf_tools/theme/app_theme.dart';
-import 'success_screen.dart';
 import 'processing_screen.dart';
 import '../utils/file_utils.dart';
 import 'package:path/path.dart' as p;
@@ -23,7 +22,6 @@ class LockPdfScreen extends StatefulWidget {
 class _LockPdfScreenState extends State<LockPdfScreen> {
   File? _selectedPdf;
   final TextEditingController _passwordController = TextEditingController();
-  bool _isProcessing = false;
   bool isVisible = true;
 
   Future<void> _pickPdf() async {
@@ -128,7 +126,7 @@ class _LockPdfScreenState extends State<LockPdfScreen> {
                   icon: const Icon(Icons.picture_as_pdf),
                   label: const Text('Select PDF'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: appColors.primary!.withOpacity(0.1),
+                    backgroundColor: appColors.primary!.withValues(alpha: 0.1),
                     foregroundColor: appColors.primary,
                     elevation: 0,
                   ),

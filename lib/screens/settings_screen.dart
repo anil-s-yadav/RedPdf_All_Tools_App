@@ -170,7 +170,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               trailing ??
               Icon(
                 Icons.chevron_right,
-                color: appColors.subtitle?.withOpacity(0.3),
+                color: appColors.subtitle?.withValues(alpha: 0.3),
                 size: 20,
               ),
           onTap: onTap,
@@ -181,7 +181,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Divider(
               height: 1,
               thickness: 1,
-              color: appColors.divider?.withOpacity(0.5),
+              color: appColors.divider?.withValues(alpha: 0.5),
             ),
           ),
       ],
@@ -576,7 +576,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 24),
               const Center(
                 child: Text(
-                  'Version 1.0.1 (1)',
+                  'Version 1.0.1 (2)',
                   style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
                 ),
               ),

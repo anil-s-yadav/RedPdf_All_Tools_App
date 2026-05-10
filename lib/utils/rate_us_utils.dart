@@ -81,7 +81,7 @@ class RateUsUtils {
                       child: ElevatedButton(
                         onPressed: () async {
                           await prefs.setBool(_neverShowKey, true);
-                          Navigator.pop(context);
+                          if (context.mounted) Navigator.pop(context);
                           _launchStore();
                         },
                         style: ElevatedButton.styleFrom(
@@ -107,12 +107,12 @@ class RateUsUtils {
                   child: TextButton(
                     onPressed: () async {
                       await prefs.setBool(_neverShowKey, true);
-                      Navigator.pop(context);
+                      if (context.mounted) Navigator.pop(context);
                     },
                     child: Text(
                       'Ignore Permanently',
                       style: TextStyle(
-                        color: appColors.subtitle!.withOpacity(0.7),
+                        color: appColors.subtitle!.withValues(alpha: 0.7),
                         fontSize: 13,
                         decoration: TextDecoration.underline,
                       ),

@@ -100,9 +100,12 @@ class _PdfViewScreenState extends State<PdfViewScreen> {
           IconButton(
             icon: Icon(Icons.share, color: appColors.primary),
             onPressed: () {
-              Share.shareXFiles([
-                XFile(widget.path),
-              ], text: 'Check out this PDF!');
+              SharePlus.instance.share(
+                ShareParams(
+                  files: [XFile(widget.path)],
+                  text: 'Check out this PDF!',
+                ),
+              );
             },
           ),
         ],
@@ -164,7 +167,7 @@ class _PdfPageIndicatorState extends State<PdfPageIndicator> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.6),
+        color: Colors.black.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Text(

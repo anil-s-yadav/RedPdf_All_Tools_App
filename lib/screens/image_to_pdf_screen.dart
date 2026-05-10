@@ -189,7 +189,7 @@ class _ImageToPdfScreenState extends State<ImageToPdfScreen> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: appColors.primary!.withOpacity(0.1),
+                      color: appColors.primary!.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -213,7 +213,7 @@ class _ImageToPdfScreenState extends State<ImageToPdfScreen> {
                           Icon(
                             Icons.photo_library_outlined,
                             size: 80,
-                            color: appColors.subtitle?.withOpacity(0.2),
+                            color: appColors.subtitle?.withValues(alpha: 0.2),
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -273,8 +273,8 @@ class _ImageToPdfScreenState extends State<ImageToPdfScreen> {
                                 top: 8,
                                 left: 8,
                                 child: CircleAvatar(
-                                  backgroundColor: Colors.black.withOpacity(
-                                    0.5,
+                                  backgroundColor: Colors.black.withValues(
+                                    alpha: 0.5,
                                   ),
                                   radius: 14,
                                   child: const Icon(
@@ -290,8 +290,8 @@ class _ImageToPdfScreenState extends State<ImageToPdfScreen> {
                                 child: GestureDetector(
                                   onTap: () => _removeImage(index),
                                   child: CircleAvatar(
-                                    backgroundColor: Colors.white.withOpacity(
-                                      0.9,
+                                    backgroundColor: Colors.white.withValues(
+                                      alpha: 0.9,
                                     ),
                                     radius: 14,
                                     child: const Icon(
@@ -313,7 +313,7 @@ class _ImageToPdfScreenState extends State<ImageToPdfScreen> {
                                       begin: Alignment.bottomCenter,
                                       end: Alignment.topCenter,
                                       colors: [
-                                        Colors.black.withOpacity(0.7),
+                                        Colors.black.withValues(alpha: 0.7),
                                         Colors.transparent,
                                       ],
                                     ),
@@ -347,7 +347,7 @@ class _ImageToPdfScreenState extends State<ImageToPdfScreen> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, -5),
                     ),

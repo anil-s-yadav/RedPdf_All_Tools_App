@@ -110,88 +110,94 @@ class _HomeScreenState extends State<HomeScreen>
         //   ),
         // ],
       ),
-      body: DefaultTabController(
-        length: 2,
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(top: 10, bottom: 50),
-                  decoration: BoxDecoration(
-                    color: appColors.surface,
-                    borderRadius: BorderRadius.circular(30),
-                    border: Border.all(
-                      color: appColors.divider ?? Colors.grey.shade200,
-                    ),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 2,
-                  ),
-                  child: TextField(
-                    onChanged: (value) {
-                      context.read<PdfProvider>().setSearchQuery(value);
-                    },
-                    style: TextStyle(color: appColors.text),
-                    decoration: InputDecoration(
-                      icon: Icon(Icons.search, color: appColors.subtitle),
-                      hintText: 'Search files...',
-                      hintStyle: TextStyle(
-                        color: appColors.subtitle?.withOpacity(0.5),
-                      ),
-                      border: InputBorder.none,
-                    ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 10, bottom: 16),
+                decoration: BoxDecoration(
+                  color: appColors.surface,
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(
+                    color: appColors.divider ?? Colors.grey.shade200,
                   ),
                 ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 2,
+                ),
+                child: TextField(
+                  onChanged: (value) {
+                    context.read<PdfProvider>().setSearchQuery(value);
+                  },
+                  style: TextStyle(color: appColors.text),
+                  decoration: InputDecoration(
+                    icon: Icon(Icons.search, color: appColors.subtitle),
+                    hintText: 'Search files...',
+                    hintStyle: TextStyle(
+                      color: appColors.subtitle?.withValues(alpha: 0.5),
+                    ),
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      child: TabBar(
-                        labelStyle: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: appColors.text,
-                        ),
-                        unselectedLabelColor: appColors.subtitle,
-                        isScrollable: true,
-                        tabAlignment: TabAlignment.start,
-                        dividerColor: appColors.divider,
-                        indicatorColor: appColors.primary,
-                        tabs: const [
-                          Tab(text: 'History'),
-                          Tab(text: 'All files'),
-                        ],
-                      ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'History',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: appColors.text,
                     ),
-
-                    GestureDetector(
-                      onTap: () => _showClearHistoryDialog(context),
-                      child: Text(
-                        'Clear All',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: appColors.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Expanded(
-                  child: TabBarView(
-                    children: [
-                      const _PdfList(isHistory: true),
-                      const _PdfList(isHistory: false),
-                    ],
                   ),
-                ),
-              ],
-            ),
+                  GestureDetector(
+                    onTap: () => _showClearHistoryDialog(context),
+                    child: Text(
+                      'Clear All',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: appColors.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              const Expanded(
+                child: _PdfList(isHistory: true),
+              ),
+              // TODO: Uncomment when "All Files" tab is needed in future
+              // Expanded(
+              //   child: DefaultTabController(
+              //     length: 2,
+              //     child: Column(
+              //       children: [
+              //         TabBar(
+              //           tabs: [
+              //             Tab(text: 'History'),
+              //             Tab(text: 'All files'),
+              //           ],
+              //         ),
+              //         Expanded(
+              //           child: TabBarView(
+              //             children: [
+              //               _PdfList(isHistory: true),
+              //               _PdfList(isHistory: false),
+              //             ],
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //   ),
+              // ),
+            ],
           ),
         ),
       ),
@@ -253,7 +259,7 @@ class _PdfList extends StatelessWidget {
 
   Color _getBgColor(String title, Color? baseColor) {
     final int index = title.hashCode % _randomColors.length;
-    return _randomColors[index.abs()].withOpacity(0.2);
+    return _randomColors[index.abs()].withValues(alpha: 0.2);
   }
 
   String _formatSize(int bytes) {
@@ -304,7 +310,7 @@ class _PdfList extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
+                      color: Colors.black.withValues(alpha: 0.02),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -358,9 +364,12 @@ class _PdfList extends StatelessWidget {
                           ),
                         );
                       } else if (value == 'share') {
-                        await Share.shareXFiles([
-                          XFile(item.path),
-                        ], text: 'Check out my PDF!');
+                        await SharePlus.instance.share(
+                          ShareParams(
+                            files: [XFile(item.path)],
+                            text: 'Check out my PDF!',
+                          ),
+                        );
                       } else if (value == 'save') {
                         try {
                           final savedPath = await FileUtils.saveToDevice(

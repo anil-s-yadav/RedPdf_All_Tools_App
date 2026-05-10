@@ -105,12 +105,12 @@ class _ToolCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.08),
+            color: color.withValues(alpha: 0.08),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -129,7 +129,7 @@ class _ToolCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(isDark ? 0.2 : 0.1),
+                    color: color.withValues(alpha: isDark ? 0.2 : 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Icon(iconData, color: color, size: 30),
@@ -152,7 +152,7 @@ class _ToolCard extends StatelessWidget {
                       Text(
                         subtitle,
                         style: TextStyle(
-                          color: appColors.subtitle?.withOpacity(0.8),
+                          color: appColors.subtitle?.withValues(alpha: 0.8),
                           fontSize: 14,
                           height: 1.3,
                         ),
@@ -162,7 +162,7 @@ class _ToolCard extends StatelessWidget {
                 ),
                 Icon(
                   Icons.arrow_forward_ios_rounded,
-                  color: appColors.subtitle?.withOpacity(0.3),
+                  color: appColors.subtitle?.withValues(alpha: 0.3),
                   size: 16,
                 ),
               ],
