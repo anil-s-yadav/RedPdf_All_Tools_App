@@ -1,5 +1,5 @@
-import java.util.Properties
 import java.io.FileInputStream
+import java.util.Properties
 
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
@@ -25,11 +25,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
-        }
-    }
+    kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
 
     defaultConfig {
         applicationId = "com.legendarysoftware.imagetopdf"
@@ -40,11 +36,7 @@ android {
     }
 
     // WASM removal (correct place)
-    packaging {
-        resources {
-            excludes += "lib/**/pdfium.wasm"
-        }
-    }
+    packaging { resources { excludes += "lib/**/pdfium.wasm" } }
 
     //  Signing config
     signingConfigs {
@@ -63,14 +55,11 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                    getDefaultProguardFile("proguard-android-optimize.txt"),
+                    "proguard-rules.pro"
             )
         }
     }
 }
 
-
-flutter {
-    source = "../.."
-}
+flutter { source = "../.." }

@@ -503,7 +503,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       color: Color(0xFF94A3B8),
                     ),
                     onTap: () => _launchUrl(
-                      "https://play.google.com/store/apps/details?id=com.legendarysoftware.imagetopdf",
+                      "https://play.google.com/store/apps/details?id=com.legendarysoftware.redpdf_imagetopdf",
                     ),
                   ),
                   _buildListTile(
@@ -576,7 +576,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 24),
               const Center(
                 child: Text(
-                  'Version 1.0.8 (8)',
+                  'Version 1.0.1 (1)',
                   style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
                 ),
               ),

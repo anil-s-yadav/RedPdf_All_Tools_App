@@ -5,7 +5,7 @@
   "packages": [
     {
       "name": "redpdf_tools",
-      "version": "1.0.8+8",
+      "version": "1.0.1+1",
       "dependencies": [
         "file_picker",
         "firebase_core",

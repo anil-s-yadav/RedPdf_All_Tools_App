@@ -130,7 +130,7 @@ class RateUsUtils {
   static void _launchStore() async {
     // Replace with your actual package name or store URL
     const url =
-        'https://play.google.com/store/apps/details?id=com.legendarysoftware.imagetopdf';
+        'https://play.google.com/store/apps/details?id=com.legendarysoftware.redpdf_imagetopdf';
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);

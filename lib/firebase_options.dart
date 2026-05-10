@@ -70,8 +70,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '250937130554',
     projectId: 'pdfapp-1e70e',
     storageBucket: 'pdfapp-1e70e.firebasestorage.app',
-    iosClientId: '250937130554-jdd9tjcpuf0qcabvt1s3h7rdi07kkn78.apps.googleusercontent.com',
-    iosBundleId: 'com.legendarysoftware.imagetopdf',
+    iosClientId:
+        '250937130554-jdd9tjcpuf0qcabvt1s3h7rdi07kkn78.apps.googleusercontent.com',
+    iosBundleId: 'com.legendarysoftware.redpdf_imagetopdf',
   );
-
 }
