@@ -16,7 +16,7 @@ plugins {
 }
 
 android {
-    namespace = "com.legendarysoftware.imagetopdf"
+    namespace = "com.legendarysoftware.redpdf.imagetopdf"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -28,7 +28,7 @@ android {
     kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
 
     defaultConfig {
-        applicationId = "com.legendarysoftware.imagetopdf"
+        applicationId = "com.legendarysoftware.redpdf.imagetopdf"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

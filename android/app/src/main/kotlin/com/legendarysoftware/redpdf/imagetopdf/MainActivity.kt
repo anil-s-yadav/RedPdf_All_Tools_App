@@ -1,4 +1,4 @@
-package com.legendarysoftware.redpdf_imagetopdf
+package com.legendarysoftware.redpdf.imagetopdf
 
 import io.flutter.embedding.android.FlutterActivity
 
