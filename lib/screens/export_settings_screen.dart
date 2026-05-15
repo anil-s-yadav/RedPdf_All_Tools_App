@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:redpdf_tools/theme/app_theme.dart';
+import 'success_screen.dart';
 import 'processing_screen.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart' as spdf;
 import 'package:path_provider/path_provider.dart';
@@ -36,6 +37,7 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
   bool _securityEnabled = false;
   bool _allowPrinting = true;
   bool _allowCopying = true;
+  final bool _isGenerating = false;
 
   Future<Uint8List> _processImage(File file) async {
     if (_isHighCompression) {
@@ -64,7 +66,7 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
         format = spdf.PdfPageSize.legal;
         break;
     }
-    
+
     // Syncfusion handles orientation separately, but we can return the size object here.
     // If it's landscape, we swap width and height.
     if (settings.defaultOrientation == PdfPageOrientation.landscape) {
@@ -100,26 +102,29 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
     for (var imageFile in widget.images) {
       final imageBytes = await _processImage(imageFile);
       final spdf.PdfBitmap image = spdf.PdfBitmap(imageBytes);
-      
+
       final spdf.PdfPage page = document.pages.add();
-      
+
       final double imgWidth = image.width.toDouble();
       final double imgHeight = image.height.toDouble();
       final double pageWidth = page.getClientSize().width;
       final double pageHeight = page.getClientSize().height;
-      
+
       double drawWidth = pageWidth;
       double drawHeight = (imgHeight / imgWidth) * pageWidth;
-      
+
       if (drawHeight > pageHeight) {
-         drawHeight = pageHeight;
-         drawWidth = (imgWidth / imgHeight) * pageHeight;
+        drawHeight = pageHeight;
+        drawWidth = (imgWidth / imgHeight) * pageHeight;
       }
-      
+
       final double x = (pageWidth - drawWidth) / 2;
       final double y = (pageHeight - drawHeight) / 2;
 
-      page.graphics.drawImage(image, Rect.fromLTWH(x, y, drawWidth, drawHeight));
+      page.graphics.drawImage(
+        image,
+        Rect.fromLTWH(x, y, drawWidth, drawHeight),
+      );
     }
 
     final List<int> bytesList = document.saveSync();
@@ -131,10 +136,7 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
         ? 'Untitled_Document'
         : _fileNameController.text;
 
-    final uniquePath = await FileUtils.getUniqueFilePath(
-      dir.path,
-      '$name.pdf',
-    );
+    final uniquePath = await FileUtils.getUniqueFilePath(dir.path, '$name.pdf');
     final file = File(uniquePath);
     final finalFileName = p.basename(uniquePath);
 
@@ -301,7 +303,7 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
                     border: InputBorder.none,
                     suffixIcon: Container(
                       decoration: BoxDecoration(
-                        color: appColors.primary!.withValues(alpha: 0.1),
+                        color: appColors.primary!.withOpacity(0.1),
                         borderRadius: const BorderRadius.only(
                           topRight: Radius.circular(24),
                           bottomRight: Radius.circular(24),
@@ -438,7 +440,7 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
                       border: InputBorder.none,
                       hintText: 'Set opening password',
                       hintStyle: TextStyle(
-                        color: appColors.subtitle?.withValues(alpha: 0.5),
+                        color: appColors.subtitle?.withOpacity(0.5),
                       ),
                       suffixIcon: const Icon(
                         Icons.visibility_off,
@@ -487,7 +489,7 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
                       border: InputBorder.none,
                       hintText: 'Set administrative password',
                       hintStyle: TextStyle(
-                        color: appColors.subtitle?.withValues(alpha: 0.5),
+                        color: appColors.subtitle?.withOpacity(0.5),
                       ),
                       suffixIcon: const Icon(
                         Icons.visibility_off,
@@ -526,7 +528,7 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
           color: appColors.surface,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, -5),
             ),
@@ -619,7 +621,7 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
           padding: const EdgeInsets.symmetric(vertical: 20),
           decoration: BoxDecoration(
             color: isSelected
-                ? appColors.primary!.withValues(alpha: 0.1)
+                ? appColors.primary!.withOpacity(0.1)
                 : appColors.surface,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
@@ -651,7 +653,7 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
                 style: TextStyle(
                   fontSize: 12,
                   color: isSelected
-                      ? appColors.primary!.withValues(alpha: 0.7)
+                      ? appColors.primary!.withOpacity(0.7)
                       : appColors.subtitle,
                 ),
               ),
@@ -672,12 +674,12 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: isSelected
-            ? appColors.primary!.withValues(alpha: 0.05)
+            ? appColors.primary!.withOpacity(0.05)
             : appColors.surface,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: isSelected
-              ? appColors.primary!.withValues(alpha: 0.2)
+              ? appColors.primary!.withOpacity(0.2)
               : (appColors.divider ?? Colors.transparent),
         ),
       ),
@@ -695,7 +697,7 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
         activeColor: appColors.primary,
         checkColor: Colors.white,
         side: BorderSide(
-          color: appColors.subtitle?.withValues(alpha: 0.3) ?? Colors.grey.shade300,
+          color: appColors.subtitle?.withOpacity(0.3) ?? Colors.grey.shade300,
           width: 2,
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),

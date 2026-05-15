@@ -5,12 +5,12 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:redpdf_tools/providers/pdf_provider.dart';
 import 'package:redpdf_tools/theme/app_theme.dart';
+import 'success_screen.dart';
 import 'processing_screen.dart';
 import '../utils/file_utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 import 'package:redpdf_tools/models/pdf_history.dart';
-
 
 class LockPdfScreen extends StatefulWidget {
   const LockPdfScreen({super.key});
@@ -22,6 +22,7 @@ class LockPdfScreen extends StatefulWidget {
 class _LockPdfScreenState extends State<LockPdfScreen> {
   File? _selectedPdf;
   final TextEditingController _passwordController = TextEditingController();
+  final bool _isProcessing = false;
   bool isVisible = true;
 
   Future<void> _pickPdf() async {
@@ -54,9 +55,7 @@ class _LockPdfScreenState extends State<LockPdfScreen> {
     document.dispose();
 
     final dir = await getApplicationDocumentsDirectory();
-    final originalName = _selectedPdf!.path
-        .split(Platform.pathSeparator)
-        .last;
+    final originalName = _selectedPdf!.path.split(Platform.pathSeparator).last;
     final fileName = 'Locked_$originalName';
 
     final uniquePath = await FileUtils.getUniqueFilePath(dir.path, fileName);
@@ -92,10 +91,8 @@ class _LockPdfScreenState extends State<LockPdfScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ProcessingScreen(
-          title: 'Locking PDF...',
-          task: _lockPdfTask,
-        ),
+        builder: (_) =>
+            ProcessingScreen(title: 'Locking PDF...', task: _lockPdfTask),
       ),
     );
   }
@@ -126,7 +123,7 @@ class _LockPdfScreenState extends State<LockPdfScreen> {
                   icon: const Icon(Icons.picture_as_pdf),
                   label: const Text('Select PDF'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: appColors.primary!.withValues(alpha: 0.1),
+                    backgroundColor: appColors.primary!.withOpacity(0.1),
                     foregroundColor: appColors.primary,
                     elevation: 0,
                   ),
