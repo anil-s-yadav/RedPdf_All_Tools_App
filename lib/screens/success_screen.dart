@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:redpdf_tools/screens/home_screen.dart';
+import 'package:redpdf_tools/screens/navigation.dart';
 import 'package:redpdf_tools/screens/pdf_view_screen.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:redpdf_tools/theme/app_theme.dart';
@@ -65,7 +66,11 @@ class _SuccessScreenState extends State<SuccessScreen> {
   }
 
   void _goHome(BuildContext context) {
-    Navigator.popUntil(context, (route) => route.isFirst);
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => Navigation()),
+      (route) => route.isFirst,
+    );
   }
 
   Future<void> _saveToDownloads(BuildContext context) async {
@@ -354,11 +359,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                   child: SizedBox(
                     height: 56,
                     child: TextButton.icon(
-                      onPressed: () => Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (context) => HomeScreen()),
-                        (route) => false,
-                      ),
+                      onPressed: () => _goHome(context),
                       style: TextButton.styleFrom(
                         backgroundColor: appColors.primary!.withValues(
                           alpha: 0.1,

@@ -21,7 +21,6 @@ class LockPdfScreen extends StatefulWidget {
 class _LockPdfScreenState extends State<LockPdfScreen> {
   File? _selectedPdf;
   final TextEditingController _passwordController = TextEditingController();
-  final bool _isProcessing = false;
   bool isVisible = true;
 
   Future<void> _pickPdf() async {

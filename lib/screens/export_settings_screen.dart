@@ -36,7 +36,6 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
   bool _securityEnabled = false;
   bool _allowPrinting = true;
   bool _allowCopying = true;
-  final bool _isGenerating = false;
 
   Future<Uint8List> _processImage(File file) async {
     if (_isHighCompression) {
