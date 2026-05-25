@@ -89,9 +89,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Cache cleared successfully'),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white, size: 20),
+                SizedBox(width: 12),
+                Text(
+                  'Cache cleared successfully!',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+            backgroundColor: const Color(0xFF22C55E),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.all(16),
           ),
         );
       }
@@ -102,43 +116,364 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SnackBar(
             content: Text('Error clearing cache: $e'),
             backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.all(16),
           ),
         );
       }
     }
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title) {
+
+
+  // ─── Rate Us Banner ─────────────────────────────────────────────────
+  Widget _buildRateUsBanner(BuildContext context, bool isDark) {
     return Padding(
-      padding: const EdgeInsets.only(top: 24, bottom: 8, left: 24),
-      child: Text(
-        title.toUpperCase(),
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-          letterSpacing: 1.2,
-          color: Color(0xFF94A3B8),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GestureDetector(
+        onTap: () => _launchUrl(
+          "https://play.google.com/store/apps/details?id=com.legendarysoftware.redpdf_imagetopdf",
+        ),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark
+                  ? [const Color(0xFF3D2008), const Color(0xFF2A1A05)]
+                  : [
+                      const Color(0xFFFFF7ED),
+                      const Color(0xFFFFFBEB),
+                      const Color(0xFFFEF3C7),
+                    ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isDark
+                  ? const Color(0xFFD97706).withValues(alpha: 0.3)
+                  : const Color(0xFFFBBF24).withValues(alpha: 0.5),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFFBBF24)
+                    .withValues(alpha: isDark ? 0.1 : 0.15),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFFBBF24), Color(0xFFF59E0B)],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.star_rounded,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Enjoying RedPDF?',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : const Color(0xFF92400E),
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Rate us 5 stars on Play Store!',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark
+                            ? Colors.white70
+                            : const Color(0xFFB45309),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: List.generate(
+                        5,
+                        (index) => const Padding(
+                          padding: EdgeInsets.only(right: 4),
+                          child: Icon(
+                            Icons.star_rounded,
+                            size: 22,
+                            color: Color(0xFFFBBF24),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: isDark
+                    ? const Color(0xFFFBBF24).withValues(alpha: 0.7)
+                    : const Color(0xFFD97706),
+                size: 18,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
+  // ─── Try Our Other Apps Banner ──────────────────────────────────────
+  Widget _buildOtherAppsBanner(BuildContext context, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GestureDetector(
+        onTap: () => _launchUrl(
+          "https://play.google.com/store/apps/dev?id=8832237281097064209",
+        ),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark
+                  ? [const Color(0xFF1A1040), const Color(0xFF0F172A)]
+                  : [
+                      const Color(0xFFEEF2FF),
+                      const Color(0xFFF0F9FF),
+                      const Color(0xFFEFF6FF),
+                    ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isDark
+                  ? const Color(0xFF6366F1).withValues(alpha: 0.3)
+                  : const Color(0xFF818CF8).withValues(alpha: 0.3),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(
+                  0xFF6366F1,
+                ).withValues(alpha: isDark ? 0.08 : 0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.apps_rounded,
+                  color: Colors.white,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Try Our Other Apps',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : const Color(0xFF312E81),
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Explore more amazing tools by us',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark
+                            ? Colors.white70
+                            : const Color(0xFF4338CA),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: isDark
+                              ? [
+                                  const Color(
+                                    0xFF6366F1,
+                                  ).withValues(alpha: 0.3),
+                                  const Color(
+                                    0xFF8B5CF6,
+                                  ).withValues(alpha: 0.2),
+                                ]
+                              : [
+                                  const Color(
+                                    0xFF6366F1,
+                                  ).withValues(alpha: 0.1),
+                                  const Color(
+                                    0xFF8B5CF6,
+                                  ).withValues(alpha: 0.1),
+                                ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.open_in_new_rounded,
+                            size: 14,
+                            color: isDark
+                                ? const Color(0xFF818CF8)
+                                : const Color(0xFF6366F1),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'View on Play Store',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? const Color(0xFF818CF8)
+                                  : const Color(0xFF6366F1),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: isDark
+                    ? const Color(0xFF818CF8).withValues(alpha: 0.7)
+                    : const Color(0xFF6366F1).withValues(alpha: 0.6),
+                size: 18,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─── Section Header ─────────────────────────────────────────────────
+  Widget _buildSectionHeader(
+    BuildContext context,
+    String title, {
+    IconData? icon,
+  }) {
+    final appColors = Theme.of(context).appColors;
+    return Padding(
+      padding: const EdgeInsets.only(top: 28, bottom: 10, left: 24, right: 24),
+      child: Row(
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 16, color: appColors.primary),
+            const SizedBox(width: 8),
+          ],
+          Text(
+            title.toUpperCase(),
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 12,
+              letterSpacing: 1.5,
+              color: appColors.subtitle?.withValues(alpha: 0.7),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Card Container ─────────────────────────────────────────────────
   Widget _buildCardContainer({
     required List<Widget> children,
     required BuildContext context,
   }) {
     final appColors = Theme.of(context).appColors;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: appColors.surface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: appColors.divider ?? Colors.grey.shade100),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.06)
+              : Colors.black.withValues(alpha: 0.04),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.2)
+                : Colors.black.withValues(alpha: 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Column(children: children),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Column(children: children),
+      ),
     );
   }
 
+  // ─── List Tile ──────────────────────────────────────────────────────
   Widget _buildListTile(
     BuildContext context,
     IconData icon,
@@ -148,39 +483,81 @@ class _SettingsScreenState extends State<SettingsScreen> {
     bool showDivider = true,
     Color? iconColor,
     Color? textColor,
+    Color? iconBgColor,
+    String? subtitle,
   }) {
     final appColors = Theme.of(context).appColors;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final effectiveIconColor = iconColor ?? appColors.primary!;
+    final effectiveIconBgColor =
+        iconBgColor ??
+        effectiveIconColor.withValues(alpha: isDark ? 0.15 : 0.1);
+
     return Column(
       children: [
-        ListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 4,
-          ),
-          leading: Icon(icon, color: iconColor ?? appColors.primary, size: 24),
-          title: Text(
-            title,
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: 16,
-              color: textColor ?? appColors.text,
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: effectiveIconBgColor,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(icon, color: effectiveIconColor, size: 20),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                            color: textColor ?? appColors.text,
+                          ),
+                        ),
+                        if (subtitle != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              subtitle,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: appColors.subtitle?.withValues(
+                                  alpha: 0.7,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  trailing ??
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: appColors.subtitle?.withValues(alpha: 0.3),
+                        size: 22,
+                      ),
+                ],
+              ),
             ),
           ),
-          trailing:
-              trailing ??
-              Icon(
-                Icons.chevron_right,
-                color: appColors.subtitle?.withValues(alpha: 0.3),
-                size: 20,
-              ),
-          onTap: onTap,
         ),
         if (showDivider)
           Padding(
-            padding: const EdgeInsets.only(left: 60),
+            padding: const EdgeInsets.only(left: 70),
             child: Divider(
               height: 1,
-              thickness: 1,
+              thickness: 0.5,
               color: appColors.divider?.withValues(alpha: 0.5),
             ),
           ),
@@ -192,221 +569,104 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final settings = Provider.of<SettingsProvider>(context);
     final themeProvider = Provider.of<ThemeProvider>(context);
-    // final authProvider = Provider.of<AuthProvider>(context);
     final appColors = Theme.of(context).appColors;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // final user = authProvider.userModel;
-    // final isAuthenticated = authProvider.isAuthenticated;
-
     return Scaffold(
       backgroundColor: appColors.background,
+      // appBar: AppBar(title: Text('Settings')),
       body: SafeArea(
+        // top: false,
         child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Profile Header
-              // Container(
-              //   width: double.infinity,
-              //   margin: const EdgeInsets.all(16),
-              //   padding: const EdgeInsets.symmetric(
-              //     vertical: 32,
-              //     horizontal: 16,
-              //   ),
-              //   decoration: BoxDecoration(
-              //     color: isDark ? appColors.surface : const Color(0xFFFFF8F8),
-              //     borderRadius: BorderRadius.circular(32),
-              //     border: Border.all(
-              //       color: appColors.primary!.withOpacity(0.05),
-              //     ),
-              //   ),
-              //   child: Column(
-              //     children: [
-              //       Stack(
-              //         alignment: Alignment.bottomRight,
-              //         children: [
-              //           Container(
-              //             padding: const EdgeInsets.all(4),
-              //             decoration: BoxDecoration(
-              //               shape: BoxShape.circle,
-              //               border: Border.all(
-              //                 color: Colors.grey.shade200,
-              //                 width: 2,
-              //               ),
-              //             ),
-              //             child: CircleAvatar(
-              //               radius: 50,
-              //               backgroundImage: user?.photoUrl != null
-              //                   ? NetworkImage(user!.photoUrl!) as ImageProvider
-              //                   : null,
-              //               child: user?.photoUrl == null
-              //                   ? Icon(
-              //                       Icons.person,
-              //                       size: 50,
-              //                       color: appColors.subtitle,
-              //                     )
-              //                   : null,
-              //             ),
-              //           ),
-              //           if (user?.hasPremiumAccess ?? false)
-              //             Container(
-              //               padding: const EdgeInsets.all(4),
-              //               decoration: const BoxDecoration(
-              //                 color: Colors.white,
-              //                 shape: BoxShape.circle,
-              //               ),
-              //               child: Icon(
-              //                 Icons.verified,
-              //                 color: appColors.primary,
-              //                 size: 24,
-              //               ),
-              //             ),
-              //         ],
-              //       ),
-              //       const SizedBox(height: 16),
-              //       Text(
-              //         isAuthenticated
-              //             ? (user?.displayName ?? 'User')
-              //             : 'Guest User',
-              //         style: TextStyle(
-              //           fontSize: 24,
-              //           fontWeight: FontWeight.bold,
-              //           color: appColors.text,
-              //         ),
-              //       ),
-              //       const SizedBox(height: 4),
-              //       Text(
-              //         isAuthenticated
-              //             ? (user?.email ?? '')
-              //             : 'Log in to unlock 100-day free trial',
-              //         style: TextStyle(color: appColors.subtitle, fontSize: 14),
-              //       ),
-              //       const SizedBox(height: 20),
-              //       if (isAuthenticated)
-              //         Row(
-              //           mainAxisAlignment: MainAxisAlignment.center,
-              //           children: [
-              //             if (user?.hasPremiumAccess ?? false)
-              //               Container(
-              //                 padding: const EdgeInsets.symmetric(
-              //                   horizontal: 16,
-              //                   vertical: 8,
-              //                 ),
-              //                 decoration: BoxDecoration(
-              //                   color: const Color(0xFFFFEAEA),
-              //                   borderRadius: BorderRadius.circular(12),
-              //                 ),
-              //                 child: Text(
-              //                   user?.isPremium ?? false
-              //                       ? 'PRO MEMBER'
-              //                       : 'FREE TRIAL',
-              //                   style: const TextStyle(
-              //                     color: Color(0xFFFF4E50),
-              //                     fontWeight: FontWeight.bold,
-              //                     fontSize: 12,
-              //                   ),
-              //                 ),
-              //               ),
-              //             const SizedBox(width: 8),
-              //             GestureDetector(
-              //               onTap: () {
-              //                 Navigator.push(
-              //                   context,
-              //                   MaterialPageRoute(
-              //                     builder: (_) => const PackagesScreen(),
-              //                   ),
-              //                 );
-              //               },
-              //               child: Container(
-              //                 padding: const EdgeInsets.symmetric(
-              //                   horizontal: 16,
-              //                   vertical: 8,
-              //                 ),
-              //                 decoration: BoxDecoration(
-              //                   color: const Color(0xFFFF4E50),
-              //                   borderRadius: BorderRadius.circular(12),
-              //                 ),
-              //                 child: const Text(
-              //                   'Manage Plan',
-              //                   style: TextStyle(
-              //                     color: Colors.white,
-              //                     fontWeight: FontWeight.bold,
-              //                     fontSize: 12,
-              //                   ),
-              //                 ),
-              //               ),
-              //             ),
-              //           ],
-              //         )
-              //       else
-              //         SizedBox(
-              //           width: 140,
-              //           height: 48,
-              //           child: ElevatedButton(
-              //             onPressed: () {
-              //               Navigator.push(
-              //                 context,
-              //                 MaterialPageRoute(
-              //                   builder: (_) => const LoginScreen(),
-              //                 ),
-              //               );
-              //             },
-              //             style: ElevatedButton.styleFrom(
-              //               backgroundColor: appColors.primary,
-              //               shape: RoundedRectangleBorder(
-              //                 borderRadius: BorderRadius.circular(24),
-              //               ),
-              //               elevation: 0,
-              //             ),
-              //             child: const Text(
-              //               'Sign In',
-              //               style: TextStyle(
-              //                 color: Colors.white,
-              //                 fontWeight: FontWeight.bold,
-              //               ),
-              //             ),
-              //           ),
-              //         ),
-              //     ],
-              //   ),
-              // ),
-              _buildSectionHeader(context, 'General'),
+              // ── Gradient Header ──
+              // _buildHeader(context, isDark),
+              const SizedBox(height: 20),
+
+              // ══════════════════════════════════════════════════════
+              //  HIGHLIGHTED — Rate Us
+              // ══════════════════════════════════════════════════════
+              _buildRateUsBanner(context, isDark),
+
+              const SizedBox(height: 14),
+
+              // ══════════════════════════════════════════════════════
+              //  HIGHLIGHTED — Try Our Other Apps
+              // ══════════════════════════════════════════════════════
+              _buildOtherAppsBanner(context, isDark),
+
+              // ── General ──
+              _buildSectionHeader(context, 'General', icon: Icons.tune_rounded),
               _buildCardContainer(
                 context: context,
                 children: [
                   _buildListTile(
                     context,
-                    Icons.dark_mode_outlined,
+                    Icons.dark_mode_rounded,
                     'Dark Mode',
-                    trailing: Switch(
+                    subtitle: isDark ? 'Currently on' : 'Currently off',
+                    iconColor: const Color(0xFF6366F1),
+                    trailing: Switch.adaptive(
                       value: isDark,
                       onChanged: (val) => themeProvider.toggleDarkMode(val),
-                      activeThumbColor: appColors.primary,
+                      activeColor: appColors.primary,
                     ),
                   ),
                   _buildListTile(
                     context,
-                    Icons.insert_drive_file_outlined,
+                    Icons.insert_drive_file_rounded,
                     'Default Page Size',
-                    trailing: Text(
-                      settings.pageSizeString,
-                      style: const TextStyle(
-                        color: Color(0xFF64748B),
-                        fontWeight: FontWeight.w500,
+                    subtitle: 'For new PDF documents',
+                    iconColor: const Color(0xFF0EA5E9),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xFF0EA5E9).withValues(alpha: 0.15)
+                            : const Color(0xFFF0F9FF),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        settings.pageSizeString,
+                        style: TextStyle(
+                          color: const Color(0xFF0EA5E9),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                     onTap: () => _showPageSizeDialog(context, settings),
                   ),
                   _buildListTile(
                     context,
-                    Icons.screen_rotation_outlined,
+                    Icons.screen_rotation_rounded,
                     'Default Orientation',
-                    trailing: Text(
-                      settings.orientationString,
-                      style: const TextStyle(
-                        color: Color(0xFF64748B),
-                        fontWeight: FontWeight.w500,
+                    subtitle: 'Portrait or landscape',
+                    iconColor: const Color(0xFF10B981),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                            : const Color(0xFFF0FDF4),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        settings.orientationString,
+                        style: TextStyle(
+                          color: const Color(0xFF10B981),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                     onTap: () => _showOrientationDialog(context, settings),
@@ -415,114 +675,61 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
 
-              // _buildSectionHeader(context, 'Security'),
-              // _buildCardContainer(
-              //   context: context,
-              //   children: [
-              //     _buildListTile(
-              //       context,
-              //       Icons.lock_outline,
-              //       'App Lock',
-              //       trailing: Switch(
-              //         value: true,
-              //         onChanged: (val) {},
-              //         activeThumbColor: appColors.primary,
-              //       ),
-              //     ),
-              //     _buildListTile(
-              //       context,
-              //       Icons.password_outlined,
-              //       'Manage Passwords',
-              //       showDivider: false,
-              //     ),
-              //   ],
-              // ),
-              _buildSectionHeader(context, 'Storage & Backup'),
+              // ── Storage ──
+              _buildSectionHeader(
+                context,
+                'Storage',
+                icon: Icons.storage_rounded,
+              ),
               _buildCardContainer(
                 context: context,
                 children: [
-                  // _buildListTile(
-                  //   context,
-                  //   Icons.cloud_upload_outlined,
-                  //   'Auto-save to cloud',
-                  //   trailing: Switch(
-                  //     value: false,
-                  //     onChanged: (val) {},
-                  //     activeThumbColor: Colors.blue.shade100,
-                  //     activeTrackColor: Colors.blue.shade50,
-                  //   ),
-                  // ),
                   _buildListTile(
                     context,
-                    Icons.delete_outline,
+                    Icons.cleaning_services_rounded,
                     'Clear Cache',
-                    trailing: Text(
-                      _cacheSize,
-                      style: const TextStyle(
-                        color: Color(0xFF94A3B8),
-                        fontSize: 13,
+                    subtitle: 'Free up space',
+                    iconColor: const Color(0xFFEF4444),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xFFEF4444).withValues(alpha: 0.15)
+                            : const Color(0xFFFEF2F2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        _cacheSize,
+                        style: TextStyle(
+                          color: const Color(0xFFEF4444),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
-                    onTap: () => showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text("Wants to clear caches!"),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: Text("Cancel"),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              _clearCache();
-                              Navigator.pop(context);
-                            },
-                            child: Text("Clear Now"),
-                          ),
-                        ],
-                      ),
-                    ),
-                    textColor: Colors.redAccent,
-                    iconColor: Colors.redAccent,
+                    onTap: () => _showClearCacheDialog(context),
                     showDivider: false,
                   ),
                 ],
               ),
 
-              _buildSectionHeader(context, 'Support & Info'),
+              // ── About ──
+              _buildSectionHeader(
+                context,
+                'About',
+                icon: Icons.info_outline_rounded,
+              ),
               _buildCardContainer(
                 context: context,
                 children: [
                   _buildListTile(
                     context,
-                    Icons.star_border,
-                    'Rate App  🌟🌟🌟🌟🌟',
-                    trailing: const Icon(
-                      Icons.open_in_new,
-                      size: 20,
-                      color: Color(0xFF94A3B8),
-                    ),
-                    onTap: () => _launchUrl(
-                      "https://play.google.com/store/apps/details?id=com.legendarysoftware.redpdf_imagetopdf",
-                    ),
-                  ),
-                  _buildListTile(
-                    context,
-                    Icons.help_outline,
-                    'Try Our Other Tools',
-                    trailing: const Icon(
-                      Icons.open_in_new,
-                      size: 20,
-                      color: Color(0xFF94A3B8),
-                    ),
-                    onTap: () => _launchUrl(
-                      "https://play.google.com/store/apps/dev?id=8832237281097064209",
-                    ),
-                  ),
-                  _buildListTile(
-                    context,
-                    Icons.description_outlined,
+                    Icons.description_rounded,
                     'Terms of Service',
+                    iconColor: const Color(0xFF8B5CF6),
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -532,8 +739,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   _buildListTile(
                     context,
-                    Icons.privacy_tip_outlined,
+                    Icons.shield_rounded,
                     'Privacy Policy',
+                    iconColor: const Color(0xFF14B8A6),
                     showDivider: false,
                     onTap: () => Navigator.push(
                       context,
@@ -546,38 +754,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
 
               const SizedBox(height: 32),
-              // if (isAuthenticated)
-              //   Padding(
-              //     padding: const EdgeInsets.symmetric(horizontal: 24),
-              //     child: SizedBox(
-              //       width: double.infinity,
-              //       height: 56,
-              //       child: OutlinedButton.icon(
-              //         onPressed: () => authProvider.signOut(),
-              //         icon: const Icon(Icons.logout, color: Colors.redAccent),
-              //         label: const Text(
-              //           'Log Out',
-              //           style: TextStyle(
-              //             fontSize: 16,
-              //             fontWeight: FontWeight.bold,
-              //             color: Colors.redAccent,
-              //           ),
-              //         ),
-              //         style: OutlinedButton.styleFrom(
-              //           side: const BorderSide(color: Color(0xFFFEE2E2)),
-              //           shape: RoundedRectangleBorder(
-              //             borderRadius: BorderRadius.circular(28),
-              //           ),
-              //           backgroundColor: const Color(0xFFF8FAFC),
-              //         ),
-              //       ),
-              //     ),
-              //   ),
-              const SizedBox(height: 24),
-              const Center(
-                child: Text(
-                  'Version 1.0.3 (3)',
-                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+
+              // ── Version footer ──
+              Center(
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.black.withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.favorite_rounded,
+                            size: 14,
+                            color: appColors.primary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Made with love by REDPDF',
+                            style: TextStyle(
+                              color: appColors.subtitle?.withValues(alpha: 0.6),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Version 1.0.4 (4)',
+                      style: TextStyle(
+                        color: appColors.subtitle?.withValues(alpha: 0.4),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 48),
@@ -588,24 +809,145 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // ─── Clear Cache Dialog ─────────────────────────────────────────────
+  void _showClearCacheDialog(BuildContext context) {
+    final appColors = Theme.of(context).appColors;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: appColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.cleaning_services_rounded,
+                color: Color(0xFFEF4444),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Clear Cache',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+                color: appColors.text,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'This will free up $_cacheSize of storage. Cached files will be re-downloaded when needed.',
+          style: TextStyle(
+            color: appColors.subtitle,
+            fontSize: 14,
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: appColors.subtitle,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              _clearCache();
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            child: const Text(
+              'Clear Now',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Page Size Dialog ───────────────────────────────────────────────
   void _showPageSizeDialog(BuildContext context, SettingsProvider settings) {
     final appColors = Theme.of(context).appColors;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Select Page Size'),
+        backgroundColor: appColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0EA5E9).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.insert_drive_file_rounded,
+                color: Color(0xFF0EA5E9),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Page Size',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: appColors.text,
+              ),
+            ),
+          ],
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: PdfPageSize.values.map((size) {
-            return ListTile(
-              title: Text(size.toString().split('.').last.toUpperCase()),
-              trailing: settings.defaultPageSize == size
-                  ? Icon(Icons.check, color: appColors.primary)
-                  : null,
-              onTap: () {
-                settings.setDefaultPageSize(size);
-                Navigator.pop(context);
-              },
+            final isSelected = settings.defaultPageSize == size;
+            return Container(
+              margin: const EdgeInsets.only(bottom: 4),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? appColors.primary?.withValues(alpha: 0.08)
+                    : null,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                title: Text(
+                  size.toString().split('.').last.toUpperCase(),
+                  style: TextStyle(
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: isSelected ? appColors.primary : appColors.text,
+                  ),
+                ),
+                trailing: isSelected
+                    ? Icon(Icons.check_circle_rounded, color: appColors.primary)
+                    : null,
+                onTap: () {
+                  settings.setDefaultPageSize(size);
+                  Navigator.pop(context);
+                },
+              ),
             );
           }).toList(),
         ),
@@ -613,27 +955,78 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // ─── Orientation Dialog ─────────────────────────────────────────────
   void _showOrientationDialog(BuildContext context, SettingsProvider settings) {
     final appColors = Theme.of(context).appColors;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Select Orientation'),
+        backgroundColor: appColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.screen_rotation_rounded,
+                color: Color(0xFF10B981),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Orientation',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: appColors.text,
+              ),
+            ),
+          ],
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: PdfPageOrientation.values.map((orientation) {
-            return ListTile(
-              title: Text(
+            final isSelected = settings.defaultOrientation == orientation;
+            final label =
                 orientation.toString().split('.').last[0].toUpperCase() +
-                    orientation.toString().split('.').last.substring(1),
+                orientation.toString().split('.').last.substring(1);
+            return Container(
+              margin: const EdgeInsets.only(bottom: 4),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? appColors.primary?.withValues(alpha: 0.08)
+                    : null,
+                borderRadius: BorderRadius.circular(12),
               ),
-              trailing: settings.defaultOrientation == orientation
-                  ? Icon(Icons.check, color: appColors.primary)
-                  : null,
-              onTap: () {
-                settings.setDefaultOrientation(orientation);
-                Navigator.pop(context);
-              },
+              child: ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                leading: Icon(
+                  orientation.toString().contains('portrait')
+                      ? Icons.stay_primary_portrait_rounded
+                      : Icons.stay_primary_landscape_rounded,
+                  color: isSelected ? appColors.primary : appColors.subtitle,
+                ),
+                title: Text(
+                  label,
+                  style: TextStyle(
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: isSelected ? appColors.primary : appColors.text,
+                  ),
+                ),
+                trailing: isSelected
+                    ? Icon(Icons.check_circle_rounded, color: appColors.primary)
+                    : null,
+                onTap: () {
+                  settings.setDefaultOrientation(orientation);
+                  Navigator.pop(context);
+                },
+              ),
             );
           }).toList(),
         ),
