@@ -64,27 +64,30 @@ class _HomeScreenState extends State<HomeScreen>
       backgroundColor: appColors.background,
       appBar: AppBar(
         backgroundColor: appColors.background,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 10),
-            Text(
-              'Convert PDF - all tools',
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: appColors.text,
-                height: 1.2,
+        title: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // const SizedBox(height: 10),
+              Text(
+                'Convert PDF - all tools',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: appColors.text,
+                  height: 1.2,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Select any document or image to get started',
-              style: TextStyle(fontSize: 14, color: appColors.subtitle),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                'Select any document or image to get started',
+                style: TextStyle(fontSize: 14, color: appColors.subtitle),
+              ),
+            ],
+          ),
         ),
-        toolbarHeight: 150,
+        toolbarHeight: 100,
         elevation: 0,
         // Go to Buy Premium page
         // actions: [
@@ -112,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen>
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -170,9 +173,7 @@ class _HomeScreenState extends State<HomeScreen>
                 ],
               ),
               const SizedBox(height: 8),
-              const Expanded(
-                child: _PdfList(isHistory: true),
-              ),
+              const Expanded(child: _PdfList(isHistory: true)),
               // TODO: Uncomment when "All Files" tab is needed in future
               // Expanded(
               //   child: DefaultTabController(

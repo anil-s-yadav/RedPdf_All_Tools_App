@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:redpdf_tools/screens/privicypolicy_screen.dart';
 import 'package:redpdf_tools/screens/termservice_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:redpdf_tools/providers/settings_provider.dart';
@@ -127,8 +126,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-
-
   // ─── Rate Us Banner ─────────────────────────────────────────────────
   Widget _buildRateUsBanner(BuildContext context, bool isDark) {
     return Padding(
@@ -161,8 +158,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFFBBF24)
-                    .withValues(alpha: isDark ? 0.1 : 0.15),
+                color: const Color(
+                  0xFFFBBF24,
+                ).withValues(alpha: isDark ? 0.1 : 0.15),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -743,11 +741,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     'Privacy Policy',
                     iconColor: const Color(0xFF14B8A6),
                     showDivider: false,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const PrivacyPolicyScreen(),
-                      ),
+                    onTap: () => _launchUrl(
+                      "https://anil-s-yadav.github.io/REDPDF-PrivacyPolicy/",
                     ),
                   ),
                 ],
@@ -792,7 +787,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Version 1.0.4 (4)',
+                      'Version 1.0.5 (5)',
                       style: TextStyle(
                         color: appColors.subtitle?.withValues(alpha: 0.4),
                         fontSize: 11,
