@@ -248,160 +248,131 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // ─── Try Our Other Apps Banner ──────────────────────────────────────
+  // ─── Try Our Other Apps Banner (Matching Compress App) ───────────────
   Widget _buildOtherAppsBanner(BuildContext context, bool isDark) {
+    final appColors = Theme.of(context).appColors;
+    final primaryColor = appColors.primary ?? const Color(0xFFE53935);
+    final cardColor = isDark
+        ? (appColors.surface ?? const Color(0xFF1E293B))
+        : (appColors.surface ?? Colors.white);
+    final textColor =
+        appColors.text ?? (isDark ? Colors.white : Colors.black87);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: GestureDetector(
-        onTap: () => _launchUrl(
-          "https://play.google.com/store/apps/dev?id=8832237281097064209",
-        ),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDark
-                  ? [const Color(0xFF1A1040), const Color(0xFF0F172A)]
-                  : [
-                      const Color(0xFFEEF2FF),
-                      const Color(0xFFF0F9FF),
-                      const Color(0xFFEFF6FF),
-                    ],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isDark
-                  ? const Color(0xFF6366F1).withValues(alpha: 0.3)
-                  : const Color(0xFF818CF8).withValues(alpha: 0.3),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(
-                  0xFF6366F1,
-                ).withValues(alpha: isDark ? 0.08 : 0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: primaryColor.withValues(alpha: 0.22),
+            width: 1.2,
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.09),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+              spreadRadius: 1,
+            ),
+            BoxShadow(
+              color: primaryColor.withValues(alpha: 0.14),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: () => _launchUrl(
+              'https://play.google.com/store/apps/dev?id=8832237281097064209',
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              child: Row(
+                children: [
+                  Container(
+                    height: 46,
+                    width: 46,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: primaryColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Image.asset(
+                      'lib/assets/google-play-store-icon.png',
+                      fit: BoxFit.contain,
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF6366F1).withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.apps_rounded,
-                  color: Colors.white,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Try Our Other Apps',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : const Color(0xFF312E81),
-                        letterSpacing: -0.3,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Explore more amazing tools by us',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: isDark
-                            ? Colors.white70
-                            : const Color(0xFF4338CA),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: isDark
-                              ? [
-                                  const Color(
-                                    0xFF6366F1,
-                                  ).withValues(alpha: 0.3),
-                                  const Color(
-                                    0xFF8B5CF6,
-                                  ).withValues(alpha: 0.2),
-                                ]
-                              : [
-                                  const Color(
-                                    0xFF6366F1,
-                                  ).withValues(alpha: 0.1),
-                                  const Color(
-                                    0xFF8B5CF6,
-                                  ).withValues(alpha: 0.1),
-                                ],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.open_in_new_rounded,
-                            size: 14,
-                            color: isDark
-                                ? const Color(0xFF818CF8)
-                                : const Color(0xFF6366F1),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'View on Play Store',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: isDark
-                                  ? const Color(0xFF818CF8)
-                                  : const Color(0xFF6366F1),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                "More Apps",
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text(
+                                "RedPDF",
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          "Google Play Store • More Tools",
+                          style: TextStyle(
+                            color: textColor.withAlpha(150),
+                            fontSize: 12,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: primaryColor.withValues(alpha: 0.08),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 14,
+                      color: primaryColor,
+                    ),
+                  ),
+                ],
               ),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                color: isDark
-                    ? const Color(0xFF818CF8).withValues(alpha: 0.7)
-                    : const Color(0xFF6366F1).withValues(alpha: 0.6),
-                size: 18,
-              ),
-            ],
+            ),
           ),
         ),
       ),

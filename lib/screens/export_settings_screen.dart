@@ -324,12 +324,6 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionTitle('FILE DETAILS', appColors),
-              Text(
-                'File Name',
-                style: TextStyle(color: appColors.subtitle, fontSize: 13),
-              ),
-              const SizedBox(height: 8),
               Container(
                 decoration: BoxDecoration(
                   color: appColors.surface,
@@ -521,7 +515,8 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
                     color: appColors.surface,
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(
-                      color: (_confirmPasswordController.text.isNotEmpty &&
+                      color:
+                          (_confirmPasswordController.text.isNotEmpty &&
                               _userPasswordController.text !=
                                   _confirmPasswordController.text)
                           ? Colors.red
@@ -553,8 +548,7 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
                         ),
                         onPressed: () {
                           setState(() {
-                            _obscureConfirmPassword =
-                                !_obscureConfirmPassword;
+                            _obscureConfirmPassword = !_obscureConfirmPassword;
                           });
                         },
                       ),
