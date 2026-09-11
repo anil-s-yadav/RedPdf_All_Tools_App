@@ -21,7 +21,17 @@ class LockPdfScreen extends StatefulWidget {
 class _LockPdfScreenState extends State<LockPdfScreen> {
   File? _selectedPdf;
   final TextEditingController _passwordController = TextEditingController();
-  bool isVisible = true;
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickPdf() async {
     final result = await FilePicker.platform.pickFiles(
@@ -81,11 +91,54 @@ class _LockPdfScreenState extends State<LockPdfScreen> {
       fileName: finalFileName,
       fileSize: bytes.length,
       totalPages: pageCount,
+      password: _passwordController.text,
     );
   }
 
   void _startProcessing() {
-    if (_selectedPdf == null || _passwordController.text.isEmpty) return;
+    if (_selectedPdf == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a PDF first'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    if (password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a password'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (confirmPassword.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please confirm your password'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Passwords do not match'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -121,7 +174,7 @@ class _LockPdfScreenState extends State<LockPdfScreen> {
                   icon: const Icon(Icons.picture_as_pdf),
                   label: const Text('Select PDF'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: appColors.primary!.withOpacity(0.1),
+                    backgroundColor: appColors.primary!.withValues(alpha: 0.1),
                     foregroundColor: appColors.primary,
                     elevation: 0,
                   ),
@@ -134,27 +187,41 @@ class _LockPdfScreenState extends State<LockPdfScreen> {
                   style: TextStyle(color: appColors.text),
                 ),
                 const SizedBox(height: 24),
-                Text(
-                  "Create a password!",
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Create a password",
+                    style: TextStyle(
+                      color: appColors.text,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 12),
                 TextField(
                   controller: _passwordController,
                   style: TextStyle(color: appColors.text),
-
+                  obscureText: _obscurePassword,
+                  onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
                     labelText: 'Password',
+                    hintText: 'Enter password',
                     labelStyle: TextStyle(color: appColors.subtitle),
+                    hintStyle: TextStyle(
+                      color: appColors.subtitle?.withValues(alpha: 0.6),
+                    ),
                     border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
-                      onPressed: () => setState(() => isVisible = !isVisible),
-                      icon: isVisible
-                          ? Icon(Icons.visibility)
-                          : Icon(Icons.visibility_off),
+                      onPressed: () => setState(
+                        () => _obscurePassword = !_obscurePassword,
+                      ),
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: appColors.subtitle,
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(
@@ -162,7 +229,44 @@ class _LockPdfScreenState extends State<LockPdfScreen> {
                       ),
                     ),
                   ),
-                  obscureText: isVisible,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _confirmPasswordController,
+                  style: TextStyle(color: appColors.text),
+                  obscureText: _obscureConfirmPassword,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    labelText: 'Confirm Password',
+                    hintText: 'Re-enter password',
+                    errorText: (_confirmPasswordController.text.isNotEmpty &&
+                            _passwordController.text !=
+                                _confirmPasswordController.text)
+                        ? 'Passwords do not match'
+                        : null,
+                    labelStyle: TextStyle(color: appColors.subtitle),
+                    hintStyle: TextStyle(
+                      color: appColors.subtitle?.withValues(alpha: 0.6),
+                    ),
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      onPressed: () => setState(
+                        () => _obscureConfirmPassword =
+                            !_obscureConfirmPassword,
+                      ),
+                      icon: Icon(
+                        _obscureConfirmPassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: appColors.subtitle,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: appColors.divider ?? Colors.grey,
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(

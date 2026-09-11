@@ -5,7 +5,7 @@
   "packages": [
     {
       "name": "redpdf_tools",
-      "version": "1.0.5+5",
+      "version": "1.0.6+6",
       "dependencies": [
         "change_app_package_name",
         "file_picker",
@@ -14,6 +14,7 @@
         "flutter_image_compress",
         "image_cropper",
         "image_picker",
+        "in_app_review",
         "in_app_update",
         "intl",
         "media_scanner",
@@ -56,6 +57,14 @@
         "stream_channel",
         "test_api",
         "vector_math"
+      ]
+    },
+    {
+      "name": "in_app_review",
+      "version": "2.0.12",
+      "dependencies": [
+        "flutter",
+        "in_app_review_platform_interface"
       ]
     },
     {
@@ -300,7 +309,7 @@
     },
     {
       "name": "meta",
-      "version": "1.17.0",
+      "version": "1.18.0",
       "dependencies": []
     },
     {
@@ -357,7 +366,7 @@
     },
     {
       "name": "test_api",
-      "version": "0.7.10",
+      "version": "0.7.11",
       "dependencies": [
         "async",
         "boolean_selector",
@@ -368,6 +377,16 @@
         "stream_channel",
         "string_scanner",
         "term_glyph"
+      ]
+    },
+    {
+      "name": "in_app_review_platform_interface",
+      "version": "2.0.5",
+      "dependencies": [
+        "flutter",
+        "platform",
+        "plugin_platform_interface",
+        "url_launcher"
       ]
     },
     {
@@ -980,6 +999,11 @@
       ]
     },
     {
+      "name": "platform",
+      "version": "3.1.6",
+      "dependencies": []
+    },
+    {
       "name": "http_parser",
       "version": "4.1.2",
       "dependencies": [
@@ -1038,11 +1062,6 @@
         "crypto",
         "fixnum"
       ]
-    },
-    {
-      "name": "platform",
-      "version": "3.1.6",
-      "dependencies": []
     },
     {
       "name": "xdg_directories",

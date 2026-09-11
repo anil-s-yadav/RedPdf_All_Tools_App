@@ -6,8 +6,14 @@ import 'package:redpdf_tools/theme/app_theme.dart';
 class PdfViewScreen extends StatefulWidget {
   final String path;
   final String title;
+  final String? initialPassword;
 
-  const PdfViewScreen({super.key, required this.path, required this.title});
+  const PdfViewScreen({
+    super.key,
+    required this.path,
+    required this.title,
+    this.initialPassword,
+  });
 
   @override
   State<PdfViewScreen> createState() => _PdfViewScreenState();
@@ -15,8 +21,15 @@ class PdfViewScreen extends StatefulWidget {
 
 class _PdfViewScreenState extends State<PdfViewScreen> {
   final PdfViewerController _pdfViewerController = PdfViewerController();
+  late String? _cachedPassword = widget.initialPassword;
 
   Future<String?> _askPassword(BuildContext context) async {
+    if (_cachedPassword != null && _cachedPassword!.isNotEmpty) {
+      final pwd = _cachedPassword;
+      _cachedPassword = null;
+      return pwd;
+    }
+
     final appColors = Theme.of(context).appColors;
     String? password;
     final textController = TextEditingController();

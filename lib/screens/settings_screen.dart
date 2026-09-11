@@ -132,7 +132,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: GestureDetector(
         onTap: () => _launchUrl(
-          "https://play.google.com/store/apps/details?id=com.legendarysoftware.redpdf_imagetopdf",
+          "https://play.google.com/store/apps/details?id=com.legendarysoftware.redpdf.imagetopdf",
         ),
         child: Container(
           width: double.infinity,
@@ -610,7 +610,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     trailing: Switch.adaptive(
                       value: isDark,
                       onChanged: (val) => themeProvider.toggleDarkMode(val),
-                      activeColor: appColors.primary,
+                      activeTrackColor: appColors.primary,
                     ),
                   ),
                   _buildListTile(
@@ -787,7 +787,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Version 1.0.5 (5)',
+                      'Version 1.0.0 (6)',
                       style: TextStyle(
                         color: appColors.subtitle?.withValues(alpha: 0.4),
                         fontSize: 11,
@@ -918,30 +918,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
             final isSelected = settings.defaultPageSize == size;
             return Container(
               margin: const EdgeInsets.only(bottom: 4),
-              decoration: BoxDecoration(
+              child: Material(
                 color: isSelected
                     ? appColors.primary?.withValues(alpha: 0.08)
-                    : null,
+                    : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
-              ),
-              child: ListTile(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                title: Text(
-                  size.toString().split('.').last.toUpperCase(),
-                  style: TextStyle(
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    color: isSelected ? appColors.primary : appColors.text,
+                clipBehavior: Clip.antiAlias,
+                child: ListTile(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
+                  title: Text(
+                    size.toString().split('.').last.toUpperCase(),
+                    style: TextStyle(
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                      color: isSelected ? appColors.primary : appColors.text,
+                    ),
+                  ),
+                  trailing: isSelected
+                      ? Icon(
+                          Icons.check_circle_rounded,
+                          color: appColors.primary,
+                        )
+                      : null,
+                  onTap: () {
+                    settings.setDefaultPageSize(size);
+                    Navigator.pop(context);
+                  },
                 ),
-                trailing: isSelected
-                    ? Icon(Icons.check_circle_rounded, color: appColors.primary)
-                    : null,
-                onTap: () {
-                  settings.setDefaultPageSize(size);
-                  Navigator.pop(context);
-                },
               ),
             );
           }).toList(),
@@ -991,36 +997,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 orientation.toString().split('.').last.substring(1);
             return Container(
               margin: const EdgeInsets.only(bottom: 4),
-              decoration: BoxDecoration(
+              child: Material(
                 color: isSelected
                     ? appColors.primary?.withValues(alpha: 0.08)
-                    : null,
+                    : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
-              ),
-              child: ListTile(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                leading: Icon(
-                  orientation.toString().contains('portrait')
-                      ? Icons.stay_primary_portrait_rounded
-                      : Icons.stay_primary_landscape_rounded,
-                  color: isSelected ? appColors.primary : appColors.subtitle,
-                ),
-                title: Text(
-                  label,
-                  style: TextStyle(
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    color: isSelected ? appColors.primary : appColors.text,
+                clipBehavior: Clip.antiAlias,
+                child: ListTile(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
+                  leading: Icon(
+                    orientation.toString().contains('portrait')
+                        ? Icons.stay_primary_portrait_rounded
+                        : Icons.stay_primary_landscape_rounded,
+                    color: isSelected ? appColors.primary : appColors.subtitle,
+                  ),
+                  title: Text(
+                    label,
+                    style: TextStyle(
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                      color: isSelected ? appColors.primary : appColors.text,
+                    ),
+                  ),
+                  trailing: isSelected
+                      ? Icon(
+                          Icons.check_circle_rounded,
+                          color: appColors.primary,
+                        )
+                      : null,
+                  onTap: () {
+                    settings.setDefaultOrientation(orientation);
+                    Navigator.pop(context);
+                  },
                 ),
-                trailing: isSelected
-                    ? Icon(Icons.check_circle_rounded, color: appColors.primary)
-                    : null,
-                onTap: () {
-                  settings.setDefaultOrientation(orientation);
-                  Navigator.pop(context);
-                },
               ),
             );
           }).toList(),

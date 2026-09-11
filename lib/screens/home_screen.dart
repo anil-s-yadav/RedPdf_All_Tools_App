@@ -307,7 +307,6 @@ class _PdfList extends StatelessWidget {
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: appColors.surface,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
@@ -320,7 +319,11 @@ class _PdfList extends StatelessWidget {
                     color: appColors.divider ?? Colors.transparent,
                   ),
                 ),
-                child: ListTile(
+                child: Material(
+                  color: appColors.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  clipBehavior: Clip.antiAlias,
+                  child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 4,
@@ -443,6 +446,7 @@ class _PdfList extends StatelessWidget {
                       ),
                     );
                   },
+                ),
                 ),
               );
             },

@@ -15,6 +15,7 @@ class SuccessScreen extends StatefulWidget {
   final String fileName;
   final int fileSize;
   final int totalPages;
+  final String? password;
 
   const SuccessScreen({
     super.key,
@@ -23,6 +24,7 @@ class SuccessScreen extends StatefulWidget {
     required this.fileName,
     required this.fileSize,
     required this.totalPages,
+    this.password,
   });
 
   @override
@@ -58,8 +60,11 @@ class _SuccessScreenState extends State<SuccessScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            PdfViewScreen(path: widget.filePath, title: widget.fileName),
+        builder: (context) => PdfViewScreen(
+          path: widget.filePath,
+          title: widget.fileName,
+          initialPassword: widget.password,
+        ),
       ),
     );
   }
@@ -105,6 +110,10 @@ class _SuccessScreenState extends State<SuccessScreen> {
   }
 
   Future<String?> _askPassword(BuildContext context) async {
+    if (widget.password != null && widget.password!.isNotEmpty) {
+      return widget.password;
+    }
+
     final appColors = Theme.of(context).appColors;
     String? password;
     final textController = TextEditingController();
