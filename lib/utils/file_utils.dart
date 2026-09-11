@@ -4,6 +4,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:media_scanner/media_scanner.dart';
+import 'package:saf/saf.dart';
 
 class FileUtils {
   /// Returns a unique file path by appending (n) if the file already exists.
@@ -27,13 +28,49 @@ class FileUtils {
     return newPath;
   }
 
-  /// Saves a file to the Downloads/RedPdf folder.
-  /// Returns the path of the saved file if successful.
+  /// Saves a file to the chosen destination or Downloads/RedPdf folder.
+  /// Returns the path or URI of the saved file if successful.
   static Future<String?> saveToDevice({
     required String sourcePath,
     required String fileName,
+    String? storageLocation,
   }) async {
     try {
+      // 1. If custom SAF content URI is specified
+      if (storageLocation != null && storageLocation.startsWith('content://')) {
+        String cleanFileName = fileName;
+        if (!cleanFileName.toLowerCase().endsWith('.pdf')) {
+          cleanFileName += '.pdf';
+        }
+        final doc = await Saf().pasteLocalFile(
+          sourcePath,
+          storageLocation,
+          cleanFileName,
+          'application/pdf',
+        );
+        return doc.uri;
+      }
+
+      // 2. If a custom local directory path is specified
+      if (storageLocation != null && storageLocation.trim().isNotEmpty) {
+        final customDir = Directory(storageLocation);
+        if (!await customDir.exists()) {
+          await customDir.create(recursive: true);
+        }
+        final uniquePath = await getUniqueFilePath(customDir.path, fileName);
+        final currentFile = File(sourcePath);
+        await currentFile.copy(uniquePath);
+        if (Platform.isAndroid) {
+          try {
+            await MediaScanner.loadMedia(path: uniquePath);
+          } catch (e) {
+            debugPrint('Media scan error: $e');
+          }
+        }
+        return uniquePath;
+      }
+
+      // 3. Fallback to default Downloads/RedPdf
       String downloadsPath;
       if (Platform.isAndroid) {
         downloadsPath = '/storage/emulated/0/Download';

@@ -5,7 +5,7 @@
   "packages": [
     {
       "name": "redpdf_tools",
-      "version": "1.0.6+6",
+      "version": "2.0.0+7",
       "dependencies": [
         "change_app_package_name",
         "file_picker",
@@ -22,10 +22,12 @@
         "media_scanner",
         "path",
         "path_provider",
+        "pdf_manipulator",
         "pdfrx",
         "permission_handler",
         "provider",
         "reorderable_grid_view",
+        "saf",
         "share_plus",
         "shared_preferences",
         "syncfusion_flutter_pdf",
@@ -60,6 +62,22 @@
         "stream_channel",
         "test_api",
         "vector_math"
+      ]
+    },
+    {
+      "name": "saf",
+      "version": "2.1.2",
+      "dependencies": [
+        "flutter",
+        "plugin_platform_interface"
+      ]
+    },
+    {
+      "name": "pdf_manipulator",
+      "version": "0.5.9",
+      "dependencies": [
+        "flutter",
+        "plugin_platform_interface"
       ]
     },
     {
@@ -411,6 +429,13 @@
         "stream_channel",
         "string_scanner",
         "term_glyph"
+      ]
+    },
+    {
+      "name": "plugin_platform_interface",
+      "version": "2.1.8",
+      "dependencies": [
+        "meta"
       ]
     },
     {
@@ -993,13 +1018,6 @@
         "ffi",
         "meta",
         "xml"
-      ]
-    },
-    {
-      "name": "plugin_platform_interface",
-      "version": "2.1.8",
-      "dependencies": [
-        "meta"
       ]
     },
     {

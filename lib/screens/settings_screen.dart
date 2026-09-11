@@ -7,6 +7,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:redpdf_tools/providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
 import 'package:redpdf_tools/theme/app_theme.dart';
+import 'package:saf/saf.dart';
+import 'permission_settings_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -276,11 +278,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               offset: const Offset(0, 6),
               spreadRadius: 1,
             ),
-            BoxShadow(
-              color: primaryColor.withValues(alpha: 0.14),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
+            // BoxShadow(
+            //   color: primaryColor.withValues(alpha: 0.14),
+            //   blurRadius: 8,
+            //   offset: const Offset(0, 2),
+            // ),
           ],
         ),
         child: Material(
@@ -499,6 +501,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             padding: const EdgeInsets.only(top: 2),
                             child: Text(
                               subtitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: appColors.subtitle?.withValues(
@@ -551,23 +555,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Gradient Header ──
               // _buildHeader(context, isDark),
-              const SizedBox(height: 20),
-
-              // ══════════════════════════════════════════════════════
-              //  HIGHLIGHTED — Rate Us
-              // ══════════════════════════════════════════════════════
-              _buildRateUsBanner(context, isDark),
-
-              const SizedBox(height: 14),
-
-              // ══════════════════════════════════════════════════════
-              //  HIGHLIGHTED — Try Our Other Apps
-              // ══════════════════════════════════════════════════════
-              _buildOtherAppsBanner(context, isDark),
-
-              // ── General ──
               _buildSectionHeader(context, 'General', icon: Icons.tune_rounded),
               _buildCardContainer(
                 context: context,
@@ -655,6 +643,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   _buildListTile(
                     context,
+                    Icons.folder_open_rounded,
+                    'Storage Location',
+                    subtitle: settings.storageLocationDisplay,
+                    iconColor: const Color(0xFF3B82F6),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (settings.storageLocation.isNotEmpty)
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () async {
+                              await settings.resetStorageLocation();
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 4,
+                              ),
+                              child: Icon(
+                                Icons.refresh_rounded,
+                                size: 18,
+                                color: appColors.subtitle?.withValues(
+                                  alpha: 0.6,
+                                ),
+                              ),
+                            ),
+                          ),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          color: appColors.subtitle?.withValues(alpha: 0.3),
+                          size: 22,
+                        ),
+                      ],
+                    ),
+                    onTap: () => _pickStoragePath(context, settings),
+                    showDivider: true,
+                  ),
+                  _buildListTile(
+                    context,
                     Icons.cleaning_services_rounded,
                     'Clear Cache',
                     subtitle: 'Free up space',
@@ -680,6 +707,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
                     onTap: () => _showClearCacheDialog(context),
+                    showDivider: false,
+                  ),
+                ],
+              ),
+
+              // ── Permissions ──
+              _buildSectionHeader(
+                context,
+                'Permissions',
+                icon: Icons.security_rounded,
+              ),
+              _buildCardContainer(
+                context: context,
+                children: [
+                  _buildListTile(
+                    context,
+                    Icons.verified_user_rounded,
+                    'Permission Settings',
+                    subtitle: 'Manage notifications, storage & camera access',
+                    iconColor: const Color(0xFF10B981),
+                    iconBgColor: const Color(0xFF10B981).withValues(alpha: 0.1),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const PermissionSettingsScreen(),
+                      ),
+                    ),
                     showDivider: false,
                   ),
                 ],
@@ -717,7 +771,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                 ],
-              ),
+              ), //  HIGHLIGHTED — Rate Us
+
+              const SizedBox(height: 10),
+
+              //  HIGHLIGHTED — Try Our Other Apps
+              _buildOtherAppsBanner(context, isDark),
+              const SizedBox(height: 14),
+              _buildRateUsBanner(context, isDark),
 
               const SizedBox(height: 32),
 
@@ -758,7 +819,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Version 1.0.0 (6)',
+                      'Version 2.0.0 (7)',
                       style: TextStyle(
                         color: appColors.subtitle?.withValues(alpha: 0.4),
                         fontSize: 11,
@@ -773,6 +834,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
     );
+  }
+
+  // ─── Storage Location Picker ───────────────────────────────────────
+  Future<void> _pickStoragePath(
+    BuildContext context,
+    SettingsProvider settings,
+  ) async {
+    try {
+      final saf = Saf();
+      final dir = await saf.pickDirectory();
+      if (dir != null) {
+        await settings.setStorageLocation(dir.uri);
+      }
+    } catch (e) {
+      debugPrint('Error picking storage directory: $e');
+    }
   }
 
   // ─── Clear Cache Dialog ─────────────────────────────────────────────

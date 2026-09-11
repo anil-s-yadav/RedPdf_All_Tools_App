@@ -405,6 +405,7 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
               //   onTap: () => _showPageSizeDialog(context, settings),
               // ),
               ListTile(
+                dense: true,
                 title: Text(
                   'Page Size',
                   style: TextStyle(
@@ -425,6 +426,7 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
               ),
               ListTile(
                 // contentPadding: EdgeInsets.symmetric(vertical: 0),
+                dense: true,
                 title: Text(
                   'Page Orientation',
                   style: TextStyle(
@@ -443,9 +445,6 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
 
                 onTap: () => _showOrientationDialog(context, settings),
               ),
-              // const SizedBox(height: 24),
-              // _buildListTile(context, Icons.insert_drive_file_outlined),
-              // const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

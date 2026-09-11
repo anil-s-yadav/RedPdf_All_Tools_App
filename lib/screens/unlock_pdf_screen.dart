@@ -13,7 +13,8 @@ import 'package:provider/provider.dart';
 import 'package:redpdf_tools/models/pdf_history.dart';
 
 class UnlockPdfScreen extends StatefulWidget {
-  const UnlockPdfScreen({super.key});
+  final File? initialPdf;
+  const UnlockPdfScreen({super.key, this.initialPdf});
 
   @override
   State<UnlockPdfScreen> createState() => _UnlockPdfScreenState();
@@ -21,8 +22,37 @@ class UnlockPdfScreen extends StatefulWidget {
 
 class _UnlockPdfScreenState extends State<UnlockPdfScreen> {
   File? _selectedPdf;
+  int? _selectedBytes;
   final TextEditingController _passwordController = TextEditingController();
-  bool isVisible = true;
+  bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialPdf != null) {
+      _selectedPdf = widget.initialPdf;
+      _loadFileBytes(widget.initialPdf!);
+    }
+  }
+
+  Future<void> _loadFileBytes(File file) async {
+    try {
+      final bytes = await file.length();
+      if (mounted) setState(() => _selectedBytes = bytes);
+    } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  String _formatBytes(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB';
+  }
 
   Future<void> _pickPdf() async {
     final result = await FilePicker.platform.pickFiles(
@@ -30,8 +60,11 @@ class _UnlockPdfScreenState extends State<UnlockPdfScreen> {
       allowedExtensions: ['pdf'],
     );
     if (result != null && result.files.single.path != null) {
+      final file = File(result.files.single.path!);
+      final bytes = await file.length();
       setState(() {
-        _selectedPdf = File(result.files.single.path!);
+        _selectedPdf = file;
+        _selectedBytes = bytes;
       });
     }
   }
@@ -89,7 +122,25 @@ class _UnlockPdfScreenState extends State<UnlockPdfScreen> {
   }
 
   void _startProcessing() {
-    if (_selectedPdf == null || _passwordController.text.isEmpty) return;
+    if (_selectedPdf == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a secured PDF first'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    if (_passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter the password to unlock'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -114,68 +165,186 @@ class _UnlockPdfScreenState extends State<UnlockPdfScreen> {
         iconTheme: IconThemeData(color: appColors.text),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Center(
-            child: Column(
-              children: [
-                ElevatedButton.icon(
-                  onPressed: _pickPdf,
-                  icon: const Icon(Icons.picture_as_pdf),
-                  label: const Text('Select Secured PDF'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal.withValues(alpha: 0.1),
-                    foregroundColor: Colors.teal,
-                    elevation: 0,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildFileSection(appColors),
+              if (_selectedPdf != null) ...[
+                const SizedBox(height: 24),
+                Text(
+                  "Enter PDF Password",
+                  style: TextStyle(
+                    color: appColors.text,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
                 ),
-                if (_selectedPdf != null) ...[
-                  const SizedBox(height: 16),
-                  Text(
-                    'Selected: ${_selectedPdf!.path.split(Platform.pathSeparator).last}',
-                    style: TextStyle(color: appColors.text),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _passwordController,
+                  style: TextStyle(color: appColors.text),
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    hintText: 'Enter password to unlock',
+                    labelStyle: TextStyle(color: appColors.subtitle),
+                    hintStyle: TextStyle(
+                      color: appColors.subtitle?.withValues(alpha: 0.6),
+                    ),
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      onPressed: () => setState(
+                        () => _obscurePassword = !_obscurePassword,
+                      ),
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: appColors.subtitle,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: appColors.divider ?? Colors.grey,
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 24),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _startProcessing,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Unlock PDF'),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-                  TextField(
-                    controller: _passwordController,
-                    style: TextStyle(color: appColors.text),
-                    decoration: InputDecoration(
-                      suffixIcon: IconButton(
-                        onPressed: () => setState(() => isVisible = !isVisible),
-                        icon: isVisible
-                            ? Icon(Icons.visibility)
-                            : Icon(Icons.visibility_off),
-                      ),
-                      labelText: 'Enter Password to unlock',
-                      labelStyle: TextStyle(color: appColors.subtitle),
-                      border: const OutlineInputBorder(),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: appColors.divider ?? Colors.grey,
-                        ),
-                      ),
-                    ),
-                    obscureText: isVisible,
+  Widget _buildFileSection(AppColors appColors) {
+    if (_selectedPdf == null) {
+      return GestureDetector(
+        onTap: _pickPdf,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+          decoration: BoxDecoration(
+            color: appColors.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.teal.withValues(alpha: 0.3),
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.teal.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.picture_as_pdf_rounded,
+                  size: 40,
+                  color: Colors.teal,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'Select PDF to Unlock',
+                style: TextStyle(
+                  color: appColors.text,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Tap to browse files from device',
+                style: TextStyle(
+                  color: appColors.subtitle,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final fileName = _selectedPdf!.path.split(Platform.pathSeparator).last;
+    final sizeStr = _selectedBytes != null ? _formatBytes(_selectedBytes!) : '';
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: appColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: appColors.divider ?? Colors.grey.shade200,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.teal.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              Icons.picture_as_pdf_rounded,
+              color: Colors.teal,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  fileName,
+                  style: TextStyle(
+                    color: appColors.text,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
                   ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: _startProcessing,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text('Unlock PDF'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Size: $sizeStr',
+                  style: TextStyle(
+                    color: appColors.subtitle,
+                    fontSize: 13,
                   ),
-                ],
+                ),
               ],
             ),
           ),
-        ),
+          TextButton(
+            onPressed: _pickPdf,
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.teal,
+            ),
+            child: const Text('Change'),
+          ),
+        ],
       ),
     );
   }

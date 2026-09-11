@@ -4,6 +4,8 @@ import 'package:redpdf_tools/screens/pdf_view_screen.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:redpdf_tools/theme/app_theme.dart';
 import 'package:pdfrx/pdfrx.dart';
+import 'package:provider/provider.dart';
+import 'package:redpdf_tools/providers/settings_provider.dart';
 import '../utils/file_utils.dart';
 import 'package:path/path.dart' as p;
 
@@ -79,18 +81,23 @@ class _SuccessScreenState extends State<SuccessScreen> {
 
   Future<void> _saveToDownloads(BuildContext context) async {
     try {
+      final settings = context.read<SettingsProvider>();
       final savedPath = await FileUtils.saveToDevice(
         sourcePath: widget.filePath,
         fileName: widget.fileName,
+        storageLocation: settings.storageLocation,
       );
 
       if (savedPath != null) {
-        final finalFileName = p.basename(savedPath);
+        final folderName = settings.storageLocationDisplay;
+        final finalFileName = savedPath.startsWith('content://')
+            ? widget.fileName
+            : p.basename(savedPath);
         // 7. Success message
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Saved to Download/RedPdf/$finalFileName'),
+            content: Text('Saved to $folderName/$finalFileName'),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
             showCloseIcon: true,
@@ -271,6 +278,13 @@ class _SuccessScreenState extends State<SuccessScreen> {
                             child: PdfViewer.file(
                               widget.filePath,
                               passwordProvider: () => _askPassword(context),
+                              params: PdfViewerParams(
+                                keyHandlerParams:
+                                    const PdfViewerKeyHandlerParams(enabled: false),
+                                errorBannerBuilder:
+                                    (context, error, stackTrace, documentRef) =>
+                                        const SizedBox.shrink(),
+                              ),
                             ),
                           ),
                         ),

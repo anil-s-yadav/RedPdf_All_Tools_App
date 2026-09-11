@@ -9,6 +9,7 @@ import 'package:in_app_update/in_app_update.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:redpdf_tools/screens/pdf_view_screen.dart';
 import 'package:redpdf_tools/theme/app_theme.dart';
+import 'package:redpdf_tools/providers/settings_provider.dart';
 import '../utils/file_utils.dart';
 import 'package:path/path.dart' as p;
 
@@ -376,17 +377,23 @@ class _PdfList extends StatelessWidget {
                         );
                       } else if (value == 'save') {
                         try {
+                          final settings = context.read<SettingsProvider>();
                           final savedPath = await FileUtils.saveToDevice(
                             sourcePath: item.path,
                             fileName: item.title,
+                            storageLocation: settings.storageLocation,
                           );
                           if (savedPath != null) {
-                            final finalFileName = p.basename(savedPath);
+                            final folderName = settings.storageLocationDisplay;
+                            final finalFileName =
+                                savedPath.startsWith('content://')
+                                    ? item.title
+                                    : p.basename(savedPath);
                             if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  'Saved to Download/RedPdf/$finalFileName',
+                                  'Saved to $folderName/$finalFileName',
                                 ),
                                 backgroundColor: Colors.green,
                                 behavior: SnackBarBehavior.floating,

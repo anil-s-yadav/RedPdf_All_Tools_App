@@ -3,6 +3,7 @@ import 'package:redpdf_tools/theme/app_theme.dart';
 import 'lock_pdf_screen.dart';
 import 'unlock_pdf_screen.dart';
 import 'image_to_pdf_screen.dart';
+import 'compress_pdf_screen.dart';
 
 class ToolsScreen extends StatelessWidget {
   const ToolsScreen({super.key});
@@ -31,7 +32,7 @@ class ToolsScreen extends StatelessWidget {
       ),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
           children: [
             _ToolCard(
               title: 'Image to PDF',
@@ -68,6 +69,19 @@ class ToolsScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const UnlockPdfScreen()),
+                );
+              },
+            ),
+            const SizedBox(height: 20),
+            _ToolCard(
+              title: 'Compress PDF',
+              subtitle: 'Reduce PDF file size while maintaining high quality',
+              iconData: Icons.compress_rounded,
+              color: Colors.deepOrangeAccent,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CompressPdfScreen()),
                 );
               },
             ),

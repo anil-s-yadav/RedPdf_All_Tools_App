@@ -23,7 +23,7 @@ class _PdfViewScreenState extends State<PdfViewScreen> {
   final PdfViewerController _pdfViewerController = PdfViewerController();
   late String? _cachedPassword = widget.initialPassword;
 
-  Future<String?> _askPassword(BuildContext context) async {
+  Future<String?> _askPassword() async {
     if (_cachedPassword != null && _cachedPassword!.isNotEmpty) {
       final pwd = _cachedPassword;
       _cachedPassword = null;
@@ -39,109 +39,149 @@ class _PdfViewScreenState extends State<PdfViewScreen> {
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: appColors.surface,
-          title: Text(
-            'Password Required',
-            style: TextStyle(
-              color: appColors.text,
-              fontWeight: FontWeight.bold,
+      builder: (dialogContext) {
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop) return;
+            password = null;
+            if (dialogContext.mounted) {
+              Navigator.of(dialogContext).pop();
+            }
+          },
+          child: AlertDialog(
+            backgroundColor: appColors.surface,
+            title: Text(
+              'Password Required',
+              style: TextStyle(
+                color: appColors.text,
+                fontWeight: FontWeight.bold,
+              ),
             ),
+            content: TextField(
+              controller: textController,
+              obscureText: true,
+              decoration: InputDecoration(
+                hintText: 'Enter PDF password',
+                hintStyle: TextStyle(color: appColors.subtitle),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: appColors.divider ?? Colors.grey),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: appColors.primary ?? Colors.blue),
+                ),
+              ),
+              style: TextStyle(color: appColors.text),
+              autofocus: true,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  password = null;
+                  Navigator.of(dialogContext).pop();
+                },
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(color: appColors.subtitle),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  password = textController.text;
+                  Navigator.of(dialogContext).pop();
+                },
+                child: Text('Open', style: TextStyle(color: appColors.primary)),
+              ),
+            ],
           ),
-          content: TextField(
-            controller: textController,
-            obscureText: true,
-            decoration: InputDecoration(
-              hintText: 'Enter PDF password',
-              hintStyle: TextStyle(color: appColors.subtitle),
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: appColors.divider ?? Colors.grey),
-              ),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: appColors.primary ?? Colors.blue),
-              ),
-            ),
-            style: TextStyle(color: appColors.text),
-            autofocus: true,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                password = null;
-                Navigator.of(context).pop();
-                Navigator.of(
-                  context,
-                ).pop(); // Close the viewer screen since it was cancelled
-              },
-              child: Text(
-                'Cancel',
-                style: TextStyle(color: appColors.subtitle),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                password = textController.text;
-                Navigator.of(context).pop();
-              },
-              child: Text('Open', style: TextStyle(color: appColors.primary)),
-            ),
-          ],
         );
       },
     );
-    return password;
+
+    final finalPassword = password;
+    if (finalPassword == null || finalPassword.isEmpty) {
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+      return null;
+    }
+    return finalPassword;
   }
 
   @override
   Widget build(BuildContext context) {
     final appColors = Theme.of(context).appColors;
-    return Scaffold(
-      backgroundColor: appColors.background,
-      appBar: AppBar(
-        title: Text(
-          widget.title,
-          style: TextStyle(
-            color: appColors.text,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
         backgroundColor: appColors.background,
-        iconTheme: IconThemeData(color: appColors.text),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.share, color: appColors.primary),
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            tooltip: 'Back',
             onPressed: () {
-              SharePlus.instance.share(
-                ShareParams(
-                  files: [XFile(widget.path)],
-                  text: 'Check out this PDF!',
-                ),
-              );
+              if (context.mounted) {
+                Navigator.of(context).pop();
+              }
             },
           ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          PdfViewer.file(
-            widget.path,
-            controller: _pdfViewerController,
-            passwordProvider: () => _askPassword(context),
-            params: const PdfViewerParams(
-              maxScale: 8.0,
-              backgroundColor: Colors.transparent,
-              textSelectionParams: PdfTextSelectionParams(enabled: false),
-              verticalCacheExtent: 5.0,
+          title: Text(
+            widget.title,
+            style: TextStyle(
+              color: appColors.text,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          Positioned(
-            bottom: 16,
-            right: 16,
-            child: PdfPageIndicator(controller: _pdfViewerController),
-          ),
-        ],
+          backgroundColor: appColors.background,
+          iconTheme: IconThemeData(color: appColors.text),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.share, color: appColors.primary),
+              onPressed: () {
+                SharePlus.instance.share(
+                  ShareParams(
+                    files: [XFile(widget.path)],
+                    text: 'Check out this PDF!',
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        body: Stack(
+          children: [
+            PdfViewer.file(
+              widget.path,
+              controller: _pdfViewerController,
+              passwordProvider: _askPassword,
+              params: PdfViewerParams(
+                maxScale: 8.0,
+                backgroundColor: Colors.transparent,
+                textSelectionParams:
+                    const PdfTextSelectionParams(enabled: false),
+                verticalCacheExtent: 5.0,
+                keyHandlerParams:
+                    const PdfViewerKeyHandlerParams(enabled: false),
+                errorBannerBuilder:
+                    (context, error, stackTrace, documentRef) =>
+                        const SizedBox.shrink(),
+              ),
+            ),
+            Positioned(
+              bottom: 16,
+              right: 16,
+              child: PdfPageIndicator(controller: _pdfViewerController),
+            ),
+          ],
+        ),
       ),
     );
   }

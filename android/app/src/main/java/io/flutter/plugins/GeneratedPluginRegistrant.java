@@ -76,9 +76,19 @@ public final class GeneratedPluginRegistrant {
       Log.e(TAG, "Error registering plugin path_provider_android, io.flutter.plugins.pathprovider.PathProviderPlugin", e);
     }
     try {
+      flutterEngine.getPlugins().add(new com.deepanshuchaudhary.pdf_manipulator.PdfManipulatorPlugin());
+    } catch (Exception e) {
+      Log.e(TAG, "Error registering plugin pdf_manipulator, com.deepanshuchaudhary.pdf_manipulator.PdfManipulatorPlugin", e);
+    }
+    try {
       flutterEngine.getPlugins().add(new com.baseflow.permissionhandler.PermissionHandlerPlugin());
     } catch (Exception e) {
       Log.e(TAG, "Error registering plugin permission_handler_android, com.baseflow.permissionhandler.PermissionHandlerPlugin", e);
+    }
+    try {
+      flutterEngine.getPlugins().add(new com.jvoltci.saf.SafPlugin());
+    } catch (Exception e) {
+      Log.e(TAG, "Error registering plugin saf, com.jvoltci.saf.SafPlugin", e);
     }
     try {
       flutterEngine.getPlugins().add(new dev.fluttercommunity.plus.share.SharePlusPlugin());
