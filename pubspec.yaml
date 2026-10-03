@@ -35,6 +35,8 @@ dependencies:
   flutter_timezone: ^5.1.0
   pdf_manipulator: ^0.5.9
   saf: ^2.1.2
+  pdfx: ^2.11.0
+  archive: ^4.3.0
 
 dev_dependencies:
   flutter_test:

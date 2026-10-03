@@ -13,6 +13,7 @@ import 'package:flutter_local_notifications_web/flutter_local_notifications_web.
 import 'package:flutter_timezone/flutter_timezone_web.dart';
 import 'package:image_cropper_for_web/image_cropper_for_web.dart';
 import 'package:image_picker_for_web/image_picker_for_web.dart';
+import 'package:pdfx/src/renderer/web/pdfx_plugin.dart';
 import 'package:permission_handler_html/permission_handler_html.dart';
 import 'package:share_plus/src/share_plus_web.dart';
 import 'package:shared_preferences_web/shared_preferences_web.dart';
@@ -28,6 +29,7 @@ void registerPlugins([final Registrar? pluginRegistrar]) {
   FlutterTimezonePlugin.registerWith(registrar);
   ImageCropperPlugin.registerWith(registrar);
   ImagePickerPlugin.registerWith(registrar);
+  PdfxPlugin.registerWith(registrar);
   WebPermissionHandler.registerWith(registrar);
   SharePlusWebPlugin.registerWith(registrar);
   SharedPreferencesPlugin.registerWith(registrar);

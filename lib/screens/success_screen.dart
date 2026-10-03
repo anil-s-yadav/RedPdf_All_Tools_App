@@ -59,6 +59,15 @@ class _SuccessScreenState extends State<SuccessScreen> {
   }
 
   void _openPdf(BuildContext context) {
+    if (widget.fileName.toLowerCase().endsWith('.zip')) {
+      SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(widget.filePath)],
+          text: 'Exported Images from RedPdf',
+        )
+      );
+      return;
+    }
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -271,22 +280,26 @@ class _SuccessScreenState extends State<SuccessScreen> {
                       SizedBox(
                         width: 50,
                         height: 50,
-
                         child: ClipRRect(
                           borderRadius: BorderRadiusGeometry.circular(10),
-                          child: AbsorbPointer(
-                            child: PdfViewer.file(
-                              widget.filePath,
-                              passwordProvider: () => _askPassword(context),
-                              params: PdfViewerParams(
-                                keyHandlerParams:
-                                    const PdfViewerKeyHandlerParams(enabled: false),
-                                errorBannerBuilder:
-                                    (context, error, stackTrace, documentRef) =>
-                                        const SizedBox.shrink(),
-                              ),
-                            ),
-                          ),
+                          child: widget.fileName.toLowerCase().endsWith('.pdf')
+                              ? AbsorbPointer(
+                                  child: PdfViewer.file(
+                                    widget.filePath,
+                                    passwordProvider: () => _askPassword(context),
+                                    params: PdfViewerParams(
+                                      keyHandlerParams:
+                                          const PdfViewerKeyHandlerParams(enabled: false),
+                                      errorBannerBuilder:
+                                          (context, error, stackTrace, documentRef) =>
+                                              const SizedBox.shrink(),
+                                    ),
+                                  ),
+                                )
+                              : Container(
+                                  color: Colors.blueAccent.withValues(alpha: 0.1),
+                                  child: const Icon(Icons.folder_zip, color: Colors.blueAccent, size: 30),
+                                ),
                         ),
                       ),
                       Expanded(
