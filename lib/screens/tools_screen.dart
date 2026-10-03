@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:redpdf_tools/theme/app_theme.dart';
 import 'lock_pdf_screen.dart';
 import 'unlock_pdf_screen.dart';
@@ -19,6 +20,27 @@ class ToolsScreen extends StatefulWidget {
 
 class _ToolsScreenState extends State<ToolsScreen> {
   bool _isGridView = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreference();
+  }
+
+  Future<void> _loadPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isGridView = prefs.getBool('tools_grid_view') ?? false;
+    });
+  }
+
+  Future<void> _toggleView() async {
+    setState(() {
+      _isGridView = !_isGridView;
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('tools_grid_view', _isGridView);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -114,11 +136,7 @@ class _ToolsScreenState extends State<ToolsScreen> {
               _isGridView ? Icons.view_list_rounded : Icons.grid_view_rounded,
               color: appColors.text,
             ),
-            onPressed: () {
-              setState(() {
-                _isGridView = !_isGridView;
-              });
-            },
+            onPressed: _toggleView,
             tooltip: _isGridView ? 'Switch to List View' : 'Switch to Grid View',
           ),
           const SizedBox(width: 8),
