@@ -486,7 +486,7 @@ class _PdfList extends StatelessWidget {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text(
-                              'Cannot preview ZIP archives. Please share or save to device.',
+                              'Cannot preview ZIP archives. Please share or save to device and view in your file manager!',
                             ),
                           ),
                         );
