@@ -5,8 +5,17 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:media_scanner/media_scanner.dart';
 import 'package:saf/saf.dart';
+import 'package:intl/intl.dart';
 
 class FileUtils {
+  /// Generates a human-readable default file name based on the current timestamp.
+  /// Example: 'redpdf_20261003111230'
+  static String generateDefaultFileName({String prefix = 'redpdf'}) {
+    final now = DateTime.now();
+    final formatter = DateFormat('yyyyMMddHHmmss');
+    return '${prefix}_${formatter.format(now)}';
+  }
+
   /// Returns a unique file path by appending (n) if the file already exists.
   static Future<String> getUniqueFilePath(
     String directoryPath,

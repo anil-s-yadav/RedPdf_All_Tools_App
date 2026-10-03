@@ -3,9 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:redpdf_tools/theme/app_theme.dart';
+import 'package:redpdf_tools/utils/file_utils.dart';
 import 'package:pdf_manipulator/pdf_manipulator.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
+import 'package:archive/archive.dart';
+import 'package:archive/archive_io.dart';
+import 'package:path_provider/path_provider.dart';
 import 'processing_screen.dart';
+import 'pdf_view_screen.dart'; // Added to view the PDF
+import '../widgets/pdf_file_thumbnail.dart';
 
 class SplitPdfScreen extends StatefulWidget {
   const SplitPdfScreen({super.key});
@@ -37,10 +43,11 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
       });
       final file = File(result.files.single.path!);
       try {
-        final bytes = await file.readAsBytes();
-        final doc = PdfDocument(inputBytes: bytes);
-        final count = doc.pages.count;
-        doc.dispose();
+        final documentBytes = await file.readAsBytes();
+        final document = PdfDocument(inputBytes: documentBytes);
+        final count = document.pages.count;
+        document.dispose();
+
         setState(() {
           _selectedPdf = file;
           _pageCount = count;
@@ -58,6 +65,19 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
         });
       }
     }
+  }
+
+  void _openPdfPreview() {
+    if (_selectedPdf == null) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PdfViewScreen(
+          path: _selectedPdf!.path,
+          title: p.basename(_selectedPdf!.path),
+        ),
+      ),
+    );
   }
 
   Future<void> _startSplitting() async {
@@ -86,15 +106,46 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
               ),
             );
             if (paths == null || paths.isEmpty) throw Exception('Split failed');
-            final outPath = paths.first;
-            final file = File(outPath);
-            return ProcessResult(
-              operation: 'Split PDF',
-              filePath: outPath,
-              fileName: p.basename(outPath),
-              fileSize: await file.length(),
-              totalPages: 0,
-            );
+
+            if (paths.length == 1) {
+              // Only 1 file created, return it directly
+              final outPath = paths.first;
+              final file = File(outPath);
+              final newPath = p.join(file.parent.path, '${FileUtils.generateDefaultFileName(prefix: 'Split')}.pdf');
+              final renamedFile = await file.rename(newPath);
+              return ProcessResult(
+                operation: 'Split PDF',
+                filePath: renamedFile.path,
+                fileName: p.basename(renamedFile.path),
+                fileSize: await renamedFile.length(),
+                totalPages: 0,
+              );
+            } else {
+              // Multiple files created, zip them!
+              final tempDir = await getTemporaryDirectory();
+              final outZipPath = p.join(tempDir.path, '${FileUtils.generateDefaultFileName(prefix: 'Split_Archive')}.zip');
+              
+              final archive = Archive();
+              for (int i = 0; i < paths.length; i++) {
+                final file = File(paths[i]);
+                final bytes = await file.readAsBytes();
+                // Naming them Part_1.pdf, Part_2.pdf... 
+                final archiveFile = ArchiveFile('Part_${i + 1}.pdf', bytes.length, bytes);
+                archive.addFile(archiveFile);
+              }
+
+              final encoder = ZipEncoder();
+              final zipFile = File(outZipPath);
+              await zipFile.writeAsBytes(encoder.encode(archive));
+
+              return ProcessResult(
+                operation: 'Split PDF (Zipped)',
+                filePath: zipFile.path,
+                fileName: p.basename(zipFile.path),
+                fileSize: await zipFile.length(),
+                totalPages: 0,
+              );
+            }
           },
         ),
       ),
@@ -139,33 +190,53 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(20),
-                                decoration: BoxDecoration(
-                                  color: appColors.surface,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: appColors.divider ?? Colors.transparent),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.picture_as_pdf, color: appColors.primary, size: 40),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            p.basename(_selectedPdf!.path),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(color: appColors.text, fontWeight: FontWeight.bold, fontSize: 16),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text('$_pageCount pages', style: TextStyle(color: appColors.subtitle)),
-                                        ],
+                              GestureDetector(
+                                onTap: _openPdfPreview,
+                                child: Container(
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    color: appColors.surface,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: appColors.divider ?? Colors.transparent),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.03),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 4),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 60,
+                                        height: 80,
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(8),
+                                          child: PdfFileThumbnail(file: _selectedPdf!),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              p.basename(_selectedPdf!.path),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(color: appColors.text, fontWeight: FontWeight.bold, fontSize: 16),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text('$_pageCount pages', style: TextStyle(color: appColors.subtitle)),
+                                            const SizedBox(height: 6),
+                                            Text('Tap to preview PDF', style: TextStyle(color: Colors.blueAccent, fontSize: 12, fontWeight: FontWeight.w600)),
+                                          ],
+                                        ),
+                                      ),
+                                      const Icon(Icons.remove_red_eye_outlined, color: Colors.blueAccent),
+                                    ],
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 32),
@@ -192,30 +263,27 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Use commas to separate multiple ranges or individual pages (e.g., 1-3, 5, 8-12). Each range will become a separate PDF file.',
-                                style: TextStyle(color: appColors.subtitle, fontSize: 12),
-                              ),
-                              const SizedBox(height: 24),
+                              const SizedBox(height: 16),
                               Wrap(
-                                spacing: 8,
+                                spacing: 10,
+                                runSpacing: 10,
                                 children: [
-                                  ActionChip(
-                                    label: const Text('Split every page'),
-                                    onPressed: () {
-                                      final ranges = List.generate(_pageCount, (i) => '${i + 1}').join(', ');
-                                      _rangesController.text = ranges;
-                                    },
-                                    backgroundColor: appColors.primary?.withValues(alpha: 0.1),
-                                    labelStyle: TextStyle(color: appColors.primary),
-                                  ),
                                   ActionChip(
                                     label: const Text('Split in half'),
                                     onPressed: () {
                                       if (_pageCount > 1) {
                                         final half = _pageCount ~/ 2;
                                         _rangesController.text = '1-$half, ${half + 1}-$_pageCount';
+                                      }
+                                    },
+                                    backgroundColor: appColors.primary?.withValues(alpha: 0.1),
+                                    labelStyle: TextStyle(color: appColors.primary),
+                                  ),
+                                  ActionChip(
+                                    label: const Text('Split every page'),
+                                    onPressed: () {
+                                      if (_pageCount > 0) {
+                                        _rangesController.text = List.generate(_pageCount, (i) => '${i + 1}-${i + 1}').join(', ');
                                       }
                                     },
                                     backgroundColor: appColors.primary?.withValues(alpha: 0.1),

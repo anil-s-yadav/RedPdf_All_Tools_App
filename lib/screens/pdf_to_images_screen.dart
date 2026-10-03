@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:redpdf_tools/theme/app_theme.dart';
+import 'package:redpdf_tools/utils/file_utils.dart';
 import 'package:pdfx/pdfx.dart' as pdfx;
 import 'package:archive/archive.dart';
 import 'package:archive/archive_io.dart';
@@ -56,7 +57,7 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
 
   Future<String?> _extractImages() async {
     final tempDir = await getTemporaryDirectory();
-    final outZipPath = p.join(tempDir.path, 'RedPdf_Images_${DateTime.now().millisecondsSinceEpoch}.zip');
+    final outZipPath = p.join(tempDir.path, '${FileUtils.generateDefaultFileName(prefix: 'ExtractedImages')}.zip');
     
     final doc = await pdfx.PdfDocument.openFile(_selectedPdf!.path);
     final archive = Archive();

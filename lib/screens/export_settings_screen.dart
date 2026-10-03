@@ -134,9 +134,8 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
 
     final dir = await getApplicationDocumentsDirectory();
     final enteredName = _fileNameController.text.trim();
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
     final baseName = enteredName.isEmpty
-        ? 'REDPDF_$timestamp'
+        ? FileUtils.generateDefaultFileName(prefix: 'REDPDF')
         : (enteredName.toLowerCase().endsWith('.pdf')
               ? enteredName.substring(0, enteredName.length - 4)
               : enteredName);

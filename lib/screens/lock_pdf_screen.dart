@@ -12,6 +12,8 @@ import 'package:provider/provider.dart';
 import 'package:redpdf_tools/models/pdf_history.dart';
 import 'package:pdf_manipulator/pdf_manipulator.dart';
 import 'unlock_pdf_screen.dart';
+import 'pdf_view_screen.dart';
+import '../widgets/pdf_file_thumbnail.dart';
 
 class LockPdfScreen extends StatefulWidget {
   const LockPdfScreen({super.key});
@@ -60,7 +62,8 @@ class _LockPdfScreenState extends State<LockPdfScreen> {
     try {
       final documentBytes = await file.readAsBytes();
       final document = PdfDocument(inputBytes: documentBytes);
-      final isProtected = document.security.userPassword.isNotEmpty ||
+      final isProtected =
+          document.security.userPassword.isNotEmpty ||
           document.security.ownerPassword.isNotEmpty;
       document.dispose();
       if (isProtected) return true;
@@ -92,11 +95,7 @@ class _LockPdfScreenState extends State<LockPdfScreen> {
             color: Colors.amber.withValues(alpha: 0.15),
             shape: BoxShape.circle,
           ),
-          child: const Icon(
-            Icons.lock_rounded,
-            color: Colors.amber,
-            size: 36,
-          ),
+          child: const Icon(Icons.lock_rounded, color: Colors.amber, size: 36),
         ),
         title: Text(
           'PDF Already Locked',
@@ -132,10 +131,7 @@ class _LockPdfScreenState extends State<LockPdfScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: appColors.subtitle),
-            ),
+            child: Text('Cancel', style: TextStyle(color: appColors.subtitle)),
           ),
           ElevatedButton.icon(
             onPressed: () {
@@ -382,9 +378,8 @@ class _LockPdfScreenState extends State<LockPdfScreen> {
                     ),
                     border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
-                      onPressed: () => setState(
-                        () => _obscurePassword = !_obscurePassword,
-                      ),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
                       icon: Icon(
                         _obscurePassword
                             ? Icons.visibility_off
@@ -408,7 +403,8 @@ class _LockPdfScreenState extends State<LockPdfScreen> {
                   decoration: InputDecoration(
                     labelText: 'Confirm Password',
                     hintText: 'Re-enter password',
-                    errorText: (_confirmPasswordController.text.isNotEmpty &&
+                    errorText:
+                        (_confirmPasswordController.text.isNotEmpty &&
                             _passwordController.text !=
                                 _confirmPasswordController.text)
                         ? 'Passwords do not match'
@@ -420,8 +416,8 @@ class _LockPdfScreenState extends State<LockPdfScreen> {
                     border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
                       onPressed: () => setState(
-                        () => _obscureConfirmPassword =
-                            !_obscureConfirmPassword,
+                        () =>
+                            _obscureConfirmPassword = !_obscureConfirmPassword,
                       ),
                       icon: Icon(
                         _obscureConfirmPassword
@@ -519,10 +515,7 @@ class _LockPdfScreenState extends State<LockPdfScreen> {
                 _isVerifying
                     ? 'Verifying password protection...'
                     : 'Tap to browse files from device',
-                style: TextStyle(
-                  color: appColors.subtitle,
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: appColors.subtitle, fontSize: 13),
               ),
             ],
           ),
@@ -533,69 +526,76 @@ class _LockPdfScreenState extends State<LockPdfScreen> {
     final fileName = _selectedPdf!.path.split(Platform.pathSeparator).last;
     final sizeStr = _selectedBytes != null ? _formatBytes(_selectedBytes!) : '';
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: appColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: appColors.divider ?? Colors.grey.shade200,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                PdfViewScreen(path: _selectedPdf!.path, title: fileName),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: appColors.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.redAccent, width: 2),
+          boxShadow: [
+            BoxShadow(
               color: Colors.redAccent.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(14),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
-            child: const Icon(
-              Icons.picture_as_pdf_rounded,
-              color: Colors.redAccent,
-              size: 28,
+          ],
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 45,
+              height: 60,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: PdfFileThumbnail(file: _selectedPdf!),
+              ),
             ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  fileName,
-                  style: TextStyle(
-                    color: appColors.text,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    fileName,
+                    style: TextStyle(
+                      color: appColors.text,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Size: $sizeStr',
-                  style: TextStyle(
-                    color: appColors.subtitle,
-                    fontSize: 13,
+                  const SizedBox(height: 4),
+                  Text(
+                    'Size: $sizeStr',
+                    style: TextStyle(color: appColors.subtitle, fontSize: 13),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          TextButton(
-            onPressed: _isVerifying ? null : _pickPdf,
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.redAccent,
+            TextButton(
+              onPressed: _isVerifying ? null : _pickPdf,
+              style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+              child: _isVerifying
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Change'),
             ),
-            child: _isVerifying
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text('Change'),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

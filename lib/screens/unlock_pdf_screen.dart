@@ -11,6 +11,8 @@ import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 
 import 'package:redpdf_tools/models/pdf_history.dart';
+import 'pdf_view_screen.dart';
+import '../widgets/pdf_file_thumbnail.dart';
 
 class UnlockPdfScreen extends StatefulWidget {
   final File? initialPdf;
@@ -195,9 +197,8 @@ class _UnlockPdfScreenState extends State<UnlockPdfScreen> {
                     ),
                     border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
-                      onPressed: () => setState(
-                        () => _obscurePassword = !_obscurePassword,
-                      ),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
                       icon: Icon(
                         _obscurePassword
                             ? Icons.visibility_off
@@ -274,10 +275,7 @@ class _UnlockPdfScreenState extends State<UnlockPdfScreen> {
               const SizedBox(height: 6),
               Text(
                 'Tap to browse files from device',
-                style: TextStyle(
-                  color: appColors.subtitle,
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: appColors.subtitle, fontSize: 13),
               ),
             ],
           ),
@@ -288,63 +286,70 @@ class _UnlockPdfScreenState extends State<UnlockPdfScreen> {
     final fileName = _selectedPdf!.path.split(Platform.pathSeparator).last;
     final sizeStr = _selectedBytes != null ? _formatBytes(_selectedBytes!) : '';
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: appColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: appColors.divider ?? Colors.grey.shade200,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                PdfViewScreen(path: _selectedPdf!.path, title: fileName),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: appColors.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.teal, width: 2),
+          boxShadow: [
+            BoxShadow(
               color: Colors.teal.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(14),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
-            child: const Icon(
-              Icons.picture_as_pdf_rounded,
-              color: Colors.teal,
-              size: 28,
+          ],
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 45,
+              height: 60,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: PdfFileThumbnail(file: _selectedPdf!),
+              ),
             ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  fileName,
-                  style: TextStyle(
-                    color: appColors.text,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    fileName,
+                    style: TextStyle(
+                      color: appColors.text,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Size: $sizeStr',
-                  style: TextStyle(
-                    color: appColors.subtitle,
-                    fontSize: 13,
+                  const SizedBox(height: 4),
+                  Text(
+                    'Size: $sizeStr',
+                    style: TextStyle(color: appColors.subtitle, fontSize: 13),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          TextButton(
-            onPressed: _pickPdf,
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.teal,
+            TextButton(
+              onPressed: _pickPdf,
+              style: TextButton.styleFrom(foregroundColor: Colors.teal),
+              child: const Text('Change'),
             ),
-            child: const Text('Change'),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -3,8 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:redpdf_tools/theme/app_theme.dart';
+import 'package:redpdf_tools/utils/file_utils.dart';
 import 'package:pdf_manipulator/pdf_manipulator.dart';
+import 'package:reorderable_grid_view/reorderable_grid_view.dart';
 import 'processing_screen.dart';
+import 'pdf_view_screen.dart';
+import '../widgets/pdf_file_thumbnail.dart';
 
 class MergePdfScreen extends StatefulWidget {
   const MergePdfScreen({super.key});
@@ -13,8 +17,14 @@ class MergePdfScreen extends StatefulWidget {
   State<MergePdfScreen> createState() => _MergePdfScreenState();
 }
 
+class _SelectedPdf {
+  final String id;
+  final File file;
+  _SelectedPdf({required this.file}) : id = UniqueKey().toString();
+}
+
 class _MergePdfScreenState extends State<MergePdfScreen> {
-  final List<File> _selectedPdfs = [];
+  final List<_SelectedPdf> _selectedPdfs = [];
 
   Future<void> _pickPdfs() async {
     final result = await FilePicker.platform.pickFiles(
@@ -26,7 +36,7 @@ class _MergePdfScreenState extends State<MergePdfScreen> {
       setState(() {
         for (var file in result.files) {
           if (file.path != null) {
-            _selectedPdfs.add(File(file.path!));
+            _selectedPdfs.add(_SelectedPdf(file: File(file.path!)));
           }
         }
       });
@@ -41,10 +51,21 @@ class _MergePdfScreenState extends State<MergePdfScreen> {
 
   void _reorderFiles(int oldIndex, int newIndex) {
     setState(() {
-      if (newIndex > oldIndex) newIndex -= 1;
       final file = _selectedPdfs.removeAt(oldIndex);
       _selectedPdfs.insert(newIndex, file);
     });
+  }
+
+  void _openPdfPreview(File file) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PdfViewScreen(
+          path: file.path,
+          title: p.basename(file.path),
+        ),
+      ),
+    );
   }
 
   Future<void> _startMerging() async {
@@ -61,17 +82,19 @@ class _MergePdfScreenState extends State<MergePdfScreen> {
         builder: (_) => ProcessingScreen(
           title: 'Merging PDFs...',
           task: () async {
-            final paths = _selectedPdfs.map((f) => f.path).toList();
+            final paths = _selectedPdfs.map((f) => f.file.path).toList();
             final outPath = await PdfManipulator().mergePDFs(
               params: PDFMergerParams(pdfsPaths: paths),
             );
             if (outPath == null) throw Exception('Merge failed');
             final file = File(outPath);
+            final newPath = p.join(file.parent.path, '${FileUtils.generateDefaultFileName(prefix: 'Merged')}.pdf');
+            final renamedFile = await file.rename(newPath);
             return ProcessResult(
               operation: 'Merge PDFs',
-              filePath: outPath,
-              fileName: p.basename(outPath),
-              fileSize: await file.length(),
+              filePath: renamedFile.path,
+              fileName: p.basename(renamedFile.path),
+              fileSize: await renamedFile.length(),
               totalPages: 0,
             );
           },
@@ -96,6 +119,15 @@ class _MergePdfScreenState extends State<MergePdfScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            if (_selectedPdfs.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: Text(
+                  'Drag to reorder. Tap image to view. Tap (X) to remove.',
+                  style: TextStyle(fontWeight: FontWeight.w600, color: appColors.subtitle),
+                  textAlign: TextAlign.center,
+                ),
+              ),
             Expanded(
               child: _selectedPdfs.isEmpty
                   ? Center(
@@ -111,33 +143,82 @@ class _MergePdfScreenState extends State<MergePdfScreen> {
                         ],
                       ),
                     )
-                  : ReorderableListView.builder(
-                      padding: const EdgeInsets.all(20),
+                  : ReorderableGridView.builder(
+                      padding: const EdgeInsets.all(16),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        childAspectRatio: 0.70, // Slightly taller to fit filename
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 16,
+                      ),
                       itemCount: _selectedPdfs.length,
-                      onReorderItem: _reorderFiles,
+                      onReorder: _reorderFiles,
                       itemBuilder: (context, index) {
-                        final file = _selectedPdfs[index];
-                        return Card(
-                          key: ValueKey(file.path),
-                          color: appColors.surface,
-                          margin: const EdgeInsets.only(bottom: 12),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            side: BorderSide(color: appColors.divider ?? Colors.transparent),
+                        final item = _selectedPdfs[index];
+                        final file = item.file;
+                        return Container(
+                          key: ValueKey(item.id),
+                          decoration: BoxDecoration(
+                            color: appColors.surface,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: appColors.divider ?? Colors.transparent),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              )
+                            ],
                           ),
-                          child: ListTile(
-                            leading: Icon(Icons.picture_as_pdf, color: appColors.primary),
-                            title: Text(
-                              p.basename(file.path),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(color: appColors.text),
-                            ),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.close, color: Colors.redAccent),
-                              onPressed: () => _removeFile(index),
-                            ),
+                          child: Stack(
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () => _openPdfPreview(file),
+                                      child: ClipRRect(
+                                        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                                        child: PdfFileThumbnail(file: file),
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: appColors.surface,
+                                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8)),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.drag_indicator, size: 16, color: Colors.grey),
+                                        Expanded(
+                                          child: Text(
+                                            p.basename(file.path),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(color: appColors.text, fontSize: 10, fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Positioned(
+                                top: -8,
+                                right: -8,
+                                child: IconButton(
+                                  icon: const CircleAvatar(
+                                    radius: 12,
+                                    backgroundColor: Colors.redAccent,
+                                    child: Icon(Icons.close, size: 16, color: Colors.white),
+                                  ),
+                                  onPressed: () => _removeFile(index),
+                                ),
+                              ),
+                            ],
                           ),
                         );
                       },
@@ -199,3 +280,5 @@ class _MergePdfScreenState extends State<MergePdfScreen> {
     );
   }
 }
+
+
