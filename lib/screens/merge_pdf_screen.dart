@@ -6,6 +6,9 @@ import 'package:redpdf_tools/theme/app_theme.dart';
 import 'package:redpdf_tools/utils/file_utils.dart';
 import 'package:pdf_manipulator/pdf_manipulator.dart';
 import 'package:reorderable_grid_view/reorderable_grid_view.dart';
+import 'package:provider/provider.dart';
+import 'package:redpdf_tools/models/pdf_history.dart';
+import 'package:redpdf_tools/providers/pdf_provider.dart';
 import 'processing_screen.dart';
 import 'pdf_view_screen.dart';
 import '../widgets/pdf_file_thumbnail.dart';
@@ -90,11 +93,24 @@ class _MergePdfScreenState extends State<MergePdfScreen> {
             final file = File(outPath);
             final newPath = p.join(file.parent.path, '${FileUtils.generateDefaultFileName(prefix: 'Merged')}.pdf');
             final renamedFile = await file.rename(newPath);
+            final fileSize = await renamedFile.length();
+            
+            final history = PdfHistory(
+              id: DateTime.now().millisecondsSinceEpoch.toString(),
+              title: p.basename(renamedFile.path),
+              path: renamedFile.path,
+              sizeInBytes: fileSize,
+              createdAt: DateTime.now(),
+            );
+            if (mounted) {
+              context.read<PdfProvider>().addHistory(history);
+            }
+            
             return ProcessResult(
               operation: 'Merge PDFs',
               filePath: renamedFile.path,
               fileName: p.basename(renamedFile.path),
-              fileSize: await renamedFile.length(),
+              fileSize: fileSize,
               totalPages: 0,
             );
           },
@@ -242,14 +258,13 @@ class _MergePdfScreenState extends State<MergePdfScreen> {
                     SizedBox(
                       width: double.infinity,
                       height: 56,
-                      child: ElevatedButton.icon(
+                      child: TextButton.icon(
                         onPressed: _pickPdfs,
                         icon: const Icon(Icons.add),
                         label: const Text('Add PDFs'),
-                        style: ElevatedButton.styleFrom(
+                        style: TextButton.styleFrom(
                           backgroundColor: appColors.primary?.withValues(alpha: 0.1),
                           foregroundColor: appColors.primary,
-                          elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         ),
                       ),

@@ -7,6 +7,9 @@ import 'package:redpdf_tools/utils/file_utils.dart';
 import 'package:pdf_manipulator/pdf_manipulator.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart' as spdf;
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:redpdf_tools/models/pdf_history.dart';
+import 'package:redpdf_tools/providers/pdf_provider.dart';
 import 'processing_screen.dart';
 import '../widgets/pdf_file_thumbnail.dart';
 import 'pdf_view_screen.dart';
@@ -119,12 +122,24 @@ class _AddPagesPdfScreenState extends State<AddPagesPdfScreen> {
               '${FileUtils.generateDefaultFileName(prefix: 'Appended')}.pdf',
             );
             final renamedFile = await file.rename(newPath);
-
+            final fileSize = await renamedFile.length();
+            
+            final history = PdfHistory(
+              id: DateTime.now().millisecondsSinceEpoch.toString(),
+              title: p.basename(renamedFile.path),
+              path: renamedFile.path,
+              sizeInBytes: fileSize,
+              createdAt: DateTime.now(),
+            );
+            if (mounted) {
+              context.read<PdfProvider>().addHistory(history);
+            }
+            
             return ProcessResult(
               operation: 'Add Pages',
               filePath: renamedFile.path,
               fileName: p.basename(renamedFile.path),
-              fileSize: await renamedFile.length(),
+              fileSize: fileSize,
               totalPages: 0,
             );
           },
@@ -205,6 +220,17 @@ class _AddPagesPdfScreenState extends State<AddPagesPdfScreen> {
                         ),
                       ),
                       child: ListTile(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => PdfViewScreen(
+                                path: _basePdf!.path,
+                                title: p.basename(_basePdf!.path),
+                              ),
+                            ),
+                          );
+                        },
                         leading: SizedBox(
                           width: 40,
                           height: 55,
@@ -254,6 +280,31 @@ class _AddPagesPdfScreenState extends State<AddPagesPdfScreen> {
                         ),
                       ),
                       child: ListTile(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => Dialog(
+                              backgroundColor: Colors.transparent,
+                              insetPadding: EdgeInsets.zero,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  InteractiveViewer(
+                                    child: Image.file(file),
+                                  ),
+                                  Positioned(
+                                    top: 40,
+                                    right: 20,
+                                    child: IconButton(
+                                      icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                                      onPressed: () => Navigator.pop(context),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
                         leading: SizedBox(
                           width: 40,
                           height: 55,

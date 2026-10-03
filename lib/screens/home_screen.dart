@@ -358,6 +358,12 @@ class _PdfList extends StatelessWidget {
                     icon: Icon(Icons.more_vert, color: appColors.subtitle),
                     onSelected: (value) async {
                       if (value == 'open') {
+                        if (item.path.toLowerCase().endsWith('.zip')) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Cannot preview ZIP archives. Please share or save to device.')),
+                          );
+                          return;
+                        }
                         if (!context.mounted) return;
                         Navigator.push(
                           context,
@@ -445,6 +451,12 @@ class _PdfList extends StatelessWidget {
                     ],
                   ),
                   onTap: () {
+                    if (item.path.toLowerCase().endsWith('.zip')) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Cannot preview ZIP archives. Please share or save to device.')),
+                      );
+                      return;
+                    }
                     Navigator.push(
                       context,
                       MaterialPageRoute(

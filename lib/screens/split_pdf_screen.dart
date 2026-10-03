@@ -9,6 +9,9 @@ import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:archive/archive.dart';
 import 'package:archive/archive_io.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:redpdf_tools/models/pdf_history.dart';
+import 'package:redpdf_tools/providers/pdf_provider.dart';
 import 'processing_screen.dart';
 import 'pdf_view_screen.dart'; // Added to view the PDF
 import '../widgets/pdf_file_thumbnail.dart';
@@ -113,11 +116,24 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
               final file = File(outPath);
               final newPath = p.join(file.parent.path, '${FileUtils.generateDefaultFileName(prefix: 'Split')}.pdf');
               final renamedFile = await file.rename(newPath);
+              final fileSize = await renamedFile.length();
+              
+              final history = PdfHistory(
+                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                title: p.basename(renamedFile.path),
+                path: renamedFile.path,
+                sizeInBytes: fileSize,
+                createdAt: DateTime.now(),
+              );
+              if (mounted) {
+                context.read<PdfProvider>().addHistory(history);
+              }
+
               return ProcessResult(
                 operation: 'Split PDF',
                 filePath: renamedFile.path,
                 fileName: p.basename(renamedFile.path),
-                fileSize: await renamedFile.length(),
+                fileSize: fileSize,
                 totalPages: 0,
               );
             } else {
@@ -137,12 +153,24 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
               final encoder = ZipEncoder();
               final zipFile = File(outZipPath);
               await zipFile.writeAsBytes(encoder.encode(archive));
+              final zipFileSize = await zipFile.length();
+
+              final history = PdfHistory(
+                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                title: p.basename(zipFile.path),
+                path: zipFile.path,
+                sizeInBytes: zipFileSize,
+                createdAt: DateTime.now(),
+              );
+              if (mounted) {
+                context.read<PdfProvider>().addHistory(history);
+              }
 
               return ProcessResult(
                 operation: 'Split PDF (Zipped)',
                 filePath: zipFile.path,
                 fileName: p.basename(zipFile.path),
-                fileSize: await zipFile.length(),
+                fileSize: zipFileSize,
                 totalPages: 0,
               );
             }
@@ -313,14 +341,13 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
                     SizedBox(
                       width: double.infinity,
                       height: 56,
-                      child: ElevatedButton.icon(
+                      child: TextButton.icon(
                         onPressed: _pickPdf,
                         icon: const Icon(Icons.picture_as_pdf),
                         label: Text(_selectedPdf == null ? 'Select PDF' : 'Change PDF'),
-                        style: ElevatedButton.styleFrom(
+                        style: TextButton.styleFrom(
                           backgroundColor: appColors.primary?.withValues(alpha: 0.1),
                           foregroundColor: appColors.primary,
-                          elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         ),
                       ),

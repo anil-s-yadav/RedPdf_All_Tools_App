@@ -11,8 +11,6 @@ import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 
 import 'package:redpdf_tools/models/pdf_history.dart';
-import 'pdf_view_screen.dart';
-import '../widgets/pdf_file_thumbnail.dart';
 
 class UnlockPdfScreen extends StatefulWidget {
   final File? initialPdf;
@@ -286,70 +284,59 @@ class _UnlockPdfScreenState extends State<UnlockPdfScreen> {
     final fileName = _selectedPdf!.path.split(Platform.pathSeparator).last;
     final sizeStr = _selectedBytes != null ? _formatBytes(_selectedBytes!) : '';
 
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) =>
-                PdfViewScreen(path: _selectedPdf!.path, title: fileName),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: appColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.teal, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.teal.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: appColors.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.teal, width: 2),
-          boxShadow: [
-            BoxShadow(
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
               color: Colors.teal.withValues(alpha: 0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+              borderRadius: BorderRadius.circular(14),
             ),
-          ],
-        ),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 45,
-              height: 60,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: PdfFileThumbnail(file: _selectedPdf!),
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    fileName,
-                    style: TextStyle(
-                      color: appColors.text,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+            child: const Icon(Icons.lock_outline, color: Colors.teal, size: 28),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  fileName,
+                  style: TextStyle(
+                    color: appColors.text,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Size: $sizeStr',
-                    style: TextStyle(color: appColors.subtitle, fontSize: 13),
-                  ),
-                ],
-              ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Size: $sizeStr',
+                  style: TextStyle(color: appColors.subtitle, fontSize: 13),
+                ),
+              ],
             ),
-            TextButton(
-              onPressed: _pickPdf,
-              style: TextButton.styleFrom(foregroundColor: Colors.teal),
-              child: const Text('Change'),
-            ),
-          ],
-        ),
+          ),
+          TextButton(
+            onPressed: _pickPdf,
+            style: TextButton.styleFrom(foregroundColor: Colors.teal),
+            child: const Text('Change'),
+          ),
+        ],
       ),
     );
   }

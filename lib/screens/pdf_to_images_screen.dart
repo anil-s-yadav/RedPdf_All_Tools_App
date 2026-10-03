@@ -9,7 +9,12 @@ import 'package:redpdf_tools/utils/file_utils.dart';
 import 'package:pdfx/pdfx.dart' as pdfx;
 import 'package:archive/archive.dart';
 import 'package:archive/archive_io.dart';
+import 'package:provider/provider.dart';
+import 'package:redpdf_tools/models/pdf_history.dart';
+import 'package:redpdf_tools/providers/pdf_provider.dart';
 import 'processing_screen.dart';
+import 'pdf_view_screen.dart';
+import '../widgets/pdf_file_thumbnail.dart';
 
 class PdfToImagesScreen extends StatefulWidget {
   const PdfToImagesScreen({super.key});
@@ -98,11 +103,24 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
             final outPath = await _extractImages();
             if (outPath == null) throw Exception('Extraction failed');
             final file = File(outPath);
+            final fileSize = await file.length();
+            
+            final history = PdfHistory(
+              id: DateTime.now().millisecondsSinceEpoch.toString(),
+              title: p.basename(outPath),
+              path: outPath,
+              sizeInBytes: fileSize,
+              createdAt: DateTime.now(),
+            );
+            if (mounted) {
+              context.read<PdfProvider>().addHistory(history);
+            }
+            
             return ProcessResult(
               operation: 'PDF to Images',
               filePath: outPath,
               fileName: p.basename(outPath),
-              fileSize: await file.length(),
+              fileSize: fileSize,
               totalPages: _pageCount,
             );
           },
@@ -164,32 +182,63 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
                                   style: TextStyle(color: appColors.text, fontSize: 24, fontWeight: FontWeight.bold),
                                 ),
                                 const SizedBox(height: 16),
-                                Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: appColors.surface,
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(color: appColors.divider ?? Colors.transparent),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.picture_as_pdf, color: appColors.primary),
-                                      const SizedBox(width: 16),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              p.basename(_selectedPdf!.path),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(color: appColors.text, fontWeight: FontWeight.bold),
-                                            ),
-                                            Text('$_pageCount pages to extract as JPGs', style: TextStyle(color: appColors.subtitle)),
-                                          ],
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => PdfViewScreen(
+                                          path: _selectedPdf!.path,
+                                          title: p.basename(_selectedPdf!.path),
                                         ),
                                       ),
-                                    ],
+                                    );
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: appColors.surface,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(color: appColors.primary ?? Colors.blue, width: 2),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: (appColors.primary ?? Colors.blue).withValues(alpha: 0.1),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        SizedBox(
+                                          width: 45,
+                                          height: 60,
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(8),
+                                            child: PdfFileThumbnail(file: _selectedPdf!),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                p.basename(_selectedPdf!.path),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(color: appColors.text, fontWeight: FontWeight.bold, fontSize: 16),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text('$_pageCount pages to extract as JPGs', style: TextStyle(color: appColors.subtitle)),
+                                              const SizedBox(height: 6),
+                                              const Text('Tap to preview PDF', style: TextStyle(color: Colors.blueAccent, fontSize: 12, fontWeight: FontWeight.w600)),
+                                            ],
+                                          ),
+                                        ),
+                                        const Icon(Icons.remove_red_eye_outlined, color: Colors.blueAccent),
+                                      ],
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(height: 16),
@@ -220,14 +269,13 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
                     SizedBox(
                       width: double.infinity,
                       height: 56,
-                      child: ElevatedButton.icon(
+                      child: TextButton.icon(
                         onPressed: _pickPdf,
                         icon: const Icon(Icons.picture_as_pdf),
                         label: Text(_selectedPdf == null ? 'Select PDF' : 'Change PDF'),
-                        style: ElevatedButton.styleFrom(
+                        style: TextButton.styleFrom(
                           backgroundColor: appColors.primary?.withValues(alpha: 0.1),
                           foregroundColor: appColors.primary,
-                          elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         ),
                       ),
