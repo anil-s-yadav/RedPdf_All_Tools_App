@@ -237,7 +237,13 @@ class _PdfList extends StatelessWidget {
   final bool isHistory;
   const _PdfList({required this.isHistory});
 
-  IconData _getIconForTitle(String title) {
+  bool _isZip(String title, [String? path]) {
+    return title.toLowerCase().endsWith('.zip') ||
+        (path != null && path.toLowerCase().endsWith('.zip'));
+  }
+
+  IconData _getIconForTitle(String title, [String? path]) {
+    if (_isZip(title, path)) return Icons.folder_zip_rounded;
     if (title.toLowerCase().contains('report')) return Icons.analytics;
     if (title.toLowerCase().contains('invoice')) return Icons.receipt;
     return Icons.insert_drive_file;
@@ -254,12 +260,14 @@ class _PdfList extends StatelessWidget {
     Colors.amber,
   ];
 
-  Color _getIconColor(String title) {
+  Color _getIconColor(String title, [String? path]) {
+    if (_isZip(title, path)) return Colors.purple;
     final int index = title.hashCode % _randomColors.length;
     return _randomColors[index.abs()];
   }
 
-  Color _getBgColor(String title, Color? baseColor) {
+  Color _getBgColor(String title, Color? baseColor, [String? path]) {
+    if (_isZip(title, path)) return Colors.purple.withValues(alpha: 0.15);
     final int index = title.hashCode % _randomColors.length;
     return _randomColors[index.abs()].withValues(alpha: 0.2);
   }
@@ -325,147 +333,174 @@ class _PdfList extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   clipBehavior: Clip.antiAlias,
                   child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  leading: CircleAvatar(
-                    radius: 25,
-                    backgroundColor: _getBgColor(title, appColors.lightPrimary),
-                    child: Icon(
-                      _getIconForTitle(title),
-                      color: _getIconColor(title),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
                     ),
-                  ),
-                  title: Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: appColors.text,
-                      fontSize: 16,
+                    leading: CircleAvatar(
+                      radius: 25,
+                      backgroundColor: _getBgColor(
+                        title,
+                        appColors.lightPrimary,
+                        item.path,
+                      ),
+                      child: Icon(
+                        _getIconForTitle(title, item.path),
+                        color: _getIconColor(title, item.path),
+                      ),
                     ),
-                  ),
-                  subtitle: Padding(
-                    padding: const EdgeInsets.only(top: 4.0),
-                    child: Text(
-                      '$dateStr • $sizeStr',
-                      style: TextStyle(color: appColors.subtitle, fontSize: 13),
+                    title: Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: appColors.text,
+                        fontSize: 16,
+                      ),
                     ),
-                  ),
-                  trailing: PopupMenuButton<String>(
-                    icon: Icon(Icons.more_vert, color: appColors.subtitle),
-                    onSelected: (value) async {
-                      if (value == 'open') {
-                        if (item.path.toLowerCase().endsWith('.zip')) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Cannot preview ZIP archives. Please share or save to device.')),
-                          );
-                          return;
-                        }
-                        if (!context.mounted) return;
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PdfViewScreen(
-                              path: item.path,
-                              title: item.title,
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 4.0),
+                      child: Text(
+                        '$dateStr • $sizeStr',
+                        style: TextStyle(
+                          color: appColors.subtitle,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                    trailing: PopupMenuButton<String>(
+                      icon: Icon(Icons.more_vert, color: appColors.subtitle),
+                      onSelected: (value) async {
+                        if (value == 'open') {
+                          if (item.path.toLowerCase().endsWith('.zip')) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Cannot preview ZIP archives. Please share or save to device and view in your file manager!',
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+                          if (!context.mounted) return;
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PdfViewScreen(
+                                path: item.path,
+                                title: item.title,
+                              ),
                             ),
-                          ),
-                        );
-                      } else if (value == 'share') {
-                        await SharePlus.instance.share(
-                          ShareParams(
-                            files: [XFile(item.path)],
-                            text: 'Check out my PDF!',
-                          ),
-                        );
-                      } else if (value == 'save') {
-                        try {
-                          final settings = context.read<SettingsProvider>();
-                          final savedPath = await FileUtils.saveToDevice(
-                            sourcePath: item.path,
-                            fileName: item.title,
-                            storageLocation: settings.storageLocation,
                           );
-                          if (savedPath != null) {
-                            final folderName = settings.storageLocationDisplay;
-                            final finalFileName =
-                                savedPath.startsWith('content://')
-                                    ? item.title
-                                    : p.basename(savedPath);
+                        } else if (value == 'share') {
+                          final isZip = item.path.toLowerCase().endsWith(
+                            '.zip',
+                          );
+                          await SharePlus.instance.share(
+                            ShareParams(
+                              files: [XFile(item.path)],
+                              text: isZip
+                                  ? 'Check out my ZIP archive!'
+                                  : 'Check out my PDF!',
+                            ),
+                          );
+                        } else if (value == 'save') {
+                          try {
+                            final settings = context.read<SettingsProvider>();
+                            final savedPath = await FileUtils.saveToDevice(
+                              sourcePath: item.path,
+                              fileName: item.title,
+                              storageLocation: settings.storageLocation,
+                            );
+                            if (savedPath != null) {
+                              final folderName =
+                                  settings.storageLocationDisplay;
+                              final finalFileName =
+                                  savedPath.startsWith('content://')
+                                  ? item.title
+                                  : p.basename(savedPath);
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Saved to $folderName/$finalFileName',
+                                  ),
+                                  backgroundColor: Colors.green,
+                                  behavior: SnackBarBehavior.floating,
+                                  showCloseIcon: true,
+                                ),
+                              );
+                            }
+                          } catch (e) {
                             if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(
-                                  'Saved to $folderName/$finalFileName',
-                                ),
-                                backgroundColor: Colors.green,
-                                behavior: SnackBarBehavior.floating,
-                                showCloseIcon: true,
+                                content: Text('Error saving file: $e'),
+                                backgroundColor: Colors.red,
                               ),
                             );
                           }
-                        } catch (e) {
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Error saving file: $e'),
-                              backgroundColor: Colors.red,
+                        } else if (value == 'delete') {
+                          final file = File(item.path);
+                          if (await file.exists()) {
+                            await file.delete();
+                          }
+                          if (isHistory) {
+                            provider.removeHistory(item.id);
+                          } else {
+                            provider.scanAllPdfs();
+                          }
+                        }
+                      },
+                      itemBuilder: (context) {
+                        final bool isZip = item.path.toLowerCase().endsWith(
+                          '.zip',
+                        );
+                        return [
+                          if (!isZip)
+                            const PopupMenuItem(
+                              value: 'open',
+                              child: Text('Open PDF'),
                             ),
-                          );
-                        }
-                      } else if (value == 'delete') {
-                        final file = File(item.path);
-                        if (await file.exists()) {
-                          await file.delete();
-                        }
-                        if (isHistory) {
-                          provider.removeHistory(item.id);
-                        } else {
-                          provider.scanAllPdfs();
-                        }
+                          PopupMenuItem(
+                            value: 'share',
+                            child: Text(isZip ? 'Share ZIP' : 'Share PDF'),
+                          ),
+                          const PopupMenuItem(
+                            value: 'save',
+                            child: Text('Save to device'),
+                          ),
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Text(
+                              'Delete',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ),
+                        ];
+                      },
+                    ),
+                    onTap: () {
+                      if (item.path.toLowerCase().endsWith('.zip')) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Cannot preview ZIP archives. Please share or save to device.',
+                            ),
+                          ),
+                        );
+                        return;
                       }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'open',
-                        child: Text('Open PDF'),
-                      ),
-                      const PopupMenuItem(
-                        value: 'share',
-                        child: Text('Share PDF'),
-                      ),
-                      const PopupMenuItem(
-                        value: 'save',
-                        child: Text('Save to device'),
-                      ),
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Text(
-                          'Delete',
-                          style: TextStyle(color: Colors.red),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              PdfViewScreen(path: item.path, title: item.title),
                         ),
-                      ),
-                    ],
-                  ),
-                  onTap: () {
-                    if (item.path.toLowerCase().endsWith('.zip')) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Cannot preview ZIP archives. Please share or save to device.')),
                       );
-                      return;
-                    }
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            PdfViewScreen(path: item.path, title: item.title),
-                      ),
-                    );
-                  },
-                ),
+                    },
+                  ),
                 ),
               );
             },

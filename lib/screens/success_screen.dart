@@ -64,7 +64,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
         ShareParams(
           files: [XFile(widget.filePath)],
           text: 'Exported Images from RedPdf',
-        )
+        ),
       );
       return;
     }
@@ -213,6 +213,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
               ),
             ),
           ),
+          SizedBox(width: 20),
         ],
       ),
       body: SingleChildScrollView(
@@ -286,19 +287,32 @@ class _SuccessScreenState extends State<SuccessScreen> {
                               ? AbsorbPointer(
                                   child: PdfViewer.file(
                                     widget.filePath,
-                                    passwordProvider: () => _askPassword(context),
+                                    passwordProvider: () =>
+                                        _askPassword(context),
                                     params: PdfViewerParams(
                                       keyHandlerParams:
-                                          const PdfViewerKeyHandlerParams(enabled: false),
+                                          const PdfViewerKeyHandlerParams(
+                                            enabled: false,
+                                          ),
                                       errorBannerBuilder:
-                                          (context, error, stackTrace, documentRef) =>
-                                              const SizedBox.shrink(),
+                                          (
+                                            context,
+                                            error,
+                                            stackTrace,
+                                            documentRef,
+                                          ) => const SizedBox.shrink(),
                                     ),
                                   ),
                                 )
                               : Container(
-                                  color: Colors.blueAccent.withValues(alpha: 0.1),
-                                  child: const Icon(Icons.folder_zip, color: Colors.blueAccent, size: 30),
+                                  color: Colors.purple.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  child: const Icon(
+                                    Icons.folder_zip,
+                                    color: Colors.purple,
+                                    size: 30,
+                                  ),
                                 ),
                         ),
                       ),
@@ -318,7 +332,13 @@ class _SuccessScreenState extends State<SuccessScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '${_formatSize(widget.fileSize)} • ${widget.totalPages} Pages',
+                              widget.totalPages > 0
+                                  ? '${_formatSize(widget.fileSize)} • ${widget.totalPages} Pages'
+                                  : (widget.fileName.toLowerCase().endsWith(
+                                          '.zip',
+                                        )
+                                        ? '${_formatSize(widget.fileSize)} • ZIP Archive'
+                                        : _formatSize(widget.fileSize)),
                               style: TextStyle(
                                 color: appColors.subtitle,
                                 fontSize: 14,
@@ -343,6 +363,73 @@ class _SuccessScreenState extends State<SuccessScreen> {
                   ),
                 ),
               ),
+              if (widget.fileName.toLowerCase().endsWith('.zip')) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    color: appColors.surface,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color:
+                          appColors.divider ??
+                          Colors.grey.withValues(alpha: 0.15),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.purple.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.folder_zip_outlined,
+                          color: Colors.purple,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'ZIP Archive Created',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: appColors.text,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'File is saved to your device, open the file in your File Manager to view all extracted pages.',
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                color: appColors.subtitle,
+                                height: 1.35,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               // const SizedBox(height: 40),
 
               // const SizedBox(height: 32),
@@ -394,7 +481,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                   child: SizedBox(
                     height: 56,
                     child: TextButton.icon(
-                      onPressed: () => _goHome(context),
+                      onPressed: () => _saveToDownloads(context),
                       style: TextButton.styleFrom(
                         backgroundColor: appColors.primary!.withValues(
                           alpha: 0.1,
@@ -403,9 +490,9 @@ class _SuccessScreenState extends State<SuccessScreen> {
                           borderRadius: BorderRadius.circular(28),
                         ),
                       ),
-                      icon: Icon(Icons.home, color: appColors.primary),
+                      icon: Icon(Icons.download, color: appColors.primary),
                       label: Text(
-                        'Home',
+                        'Save Again',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -420,7 +507,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                   child: SizedBox(
                     height: 56,
                     child: TextButton.icon(
-                      onPressed: () => _saveToDownloads(context),
+                      onPressed: () => _goHome(context),
                       style: TextButton.styleFrom(
                         backgroundColor: appColors.primary!.withValues(
                           alpha: 0.1,
@@ -429,9 +516,9 @@ class _SuccessScreenState extends State<SuccessScreen> {
                           borderRadius: BorderRadius.circular(28),
                         ),
                       ),
-                      icon: Icon(Icons.download, color: appColors.primary),
+                      icon: Icon(Icons.home, color: appColors.primary),
                       label: Text(
-                        'Save Again',
+                        'Home',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
