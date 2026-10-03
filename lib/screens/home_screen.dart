@@ -9,6 +9,7 @@ import 'package:in_app_update/in_app_update.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:redpdf_tools/screens/pdf_view_screen.dart';
 import 'package:redpdf_tools/theme/app_theme.dart';
+import 'package:redpdf_tools/providers/settings_provider.dart';
 import '../utils/file_utils.dart';
 import 'package:path/path.dart' as p;
 
@@ -64,27 +65,30 @@ class _HomeScreenState extends State<HomeScreen>
       backgroundColor: appColors.background,
       appBar: AppBar(
         backgroundColor: appColors.background,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 10),
-            Text(
-              'Convert PDF - all tools',
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: appColors.text,
-                height: 1.2,
+        title: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // const SizedBox(height: 10),
+              Text(
+                'Convert PDF - all tools',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: appColors.text,
+                  height: 1.2,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Select any document or image to get started',
-              style: TextStyle(fontSize: 14, color: appColors.subtitle),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                'Select any document or image to get started',
+                style: TextStyle(fontSize: 14, color: appColors.subtitle),
+              ),
+            ],
+          ),
         ),
-        toolbarHeight: 150,
+        toolbarHeight: 100,
         elevation: 0,
         // Go to Buy Premium page
         // actions: [
@@ -112,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen>
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -170,9 +174,7 @@ class _HomeScreenState extends State<HomeScreen>
                 ],
               ),
               const SizedBox(height: 8),
-              const Expanded(
-                child: _PdfList(isHistory: true),
-              ),
+              const Expanded(child: _PdfList(isHistory: true)),
               // TODO: Uncomment when "All Files" tab is needed in future
               // Expanded(
               //   child: DefaultTabController(
@@ -306,7 +308,6 @@ class _PdfList extends StatelessWidget {
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: appColors.surface,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
@@ -319,7 +320,11 @@ class _PdfList extends StatelessWidget {
                     color: appColors.divider ?? Colors.transparent,
                   ),
                 ),
-                child: ListTile(
+                child: Material(
+                  color: appColors.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  clipBehavior: Clip.antiAlias,
+                  child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 4,
@@ -372,17 +377,23 @@ class _PdfList extends StatelessWidget {
                         );
                       } else if (value == 'save') {
                         try {
+                          final settings = context.read<SettingsProvider>();
                           final savedPath = await FileUtils.saveToDevice(
                             sourcePath: item.path,
                             fileName: item.title,
+                            storageLocation: settings.storageLocation,
                           );
                           if (savedPath != null) {
-                            final finalFileName = p.basename(savedPath);
+                            final folderName = settings.storageLocationDisplay;
+                            final finalFileName =
+                                savedPath.startsWith('content://')
+                                    ? item.title
+                                    : p.basename(savedPath);
                             if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  'Saved to Download/RedPdf/$finalFileName',
+                                  'Saved to $folderName/$finalFileName',
                                 ),
                                 backgroundColor: Colors.green,
                                 behavior: SnackBarBehavior.floating,
@@ -442,6 +453,7 @@ class _PdfList extends StatelessWidget {
                       ),
                     );
                   },
+                ),
                 ),
               );
             },

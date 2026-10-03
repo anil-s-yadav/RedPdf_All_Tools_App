@@ -34,3 +34,22 @@
 -dontwarn okhttp3.**
 -dontwarn okio.**
 -dontwarn javax.annotation.**
+
+# iText (used by pdf_manipulator)
+-keep class com.itextpdf.** { *; }
+-keep class org.bouncycastle.** { *; }
+
+# Apache Xerces & XML parsing for iText
+-keep class org.apache.** { *; }
+-dontwarn org.apache.**
+-keep class javax.xml.** { *; }
+-dontwarn javax.xml.**
+-keep class org.w3c.** { *; }
+-dontwarn org.w3c.**
+-keep class org.xml.** { *; }
+-dontwarn org.xml.**
+-dontwarn com.fasterxml.jackson.**
+-dontwarn javax.naming.**
+
+# Flutter Local Notifications
+-keep class com.dexterous.flutterlocalnotifications.** { *; }

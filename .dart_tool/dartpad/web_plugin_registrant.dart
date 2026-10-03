@@ -9,6 +9,8 @@
 import 'package:file_picker/_internal/file_picker_web.dart';
 import 'package:firebase_core_web/firebase_core_web.dart';
 import 'package:flutter_image_compress_web/flutter_image_compress_web.dart';
+import 'package:flutter_local_notifications_web/flutter_local_notifications_web.dart';
+import 'package:flutter_timezone/flutter_timezone_web.dart';
 import 'package:image_cropper_for_web/image_cropper_for_web.dart';
 import 'package:image_picker_for_web/image_picker_for_web.dart';
 import 'package:permission_handler_html/permission_handler_html.dart';
@@ -22,6 +24,8 @@ void registerPlugins([final Registrar? pluginRegistrar]) {
   FilePickerWeb.registerWith(registrar);
   FirebaseCoreWeb.registerWith(registrar);
   FlutterImageCompressWeb.registerWith(registrar);
+  WebFlutterLocalNotificationsPlugin.registerWith(registrar);
+  FlutterTimezonePlugin.registerWith(registrar);
   ImageCropperPlugin.registerWith(registrar);
   ImagePickerPlugin.registerWith(registrar);
   WebPermissionHandler.registerWith(registrar);

@@ -8,6 +8,7 @@ class ProcessResult {
   final String fileName;
   final int fileSize;
   final int totalPages;
+  final String? password;
 
   ProcessResult({
     required this.operation,
@@ -15,6 +16,7 @@ class ProcessResult {
     required this.fileName,
     required this.fileSize,
     required this.totalPages,
+    this.password,
   });
 }
 
@@ -55,6 +57,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
             fileName: result.fileName,
             fileSize: result.fileSize,
             totalPages: result.totalPages,
+            password: result.password,
           ),
         ),
       );

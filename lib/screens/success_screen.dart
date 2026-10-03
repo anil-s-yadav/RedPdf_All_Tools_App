@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:redpdf_tools/screens/home_screen.dart';
+import 'package:redpdf_tools/screens/navigation.dart';
 import 'package:redpdf_tools/screens/pdf_view_screen.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:redpdf_tools/theme/app_theme.dart';
 import 'package:pdfrx/pdfrx.dart';
+import 'package:provider/provider.dart';
+import 'package:redpdf_tools/providers/settings_provider.dart';
 import '../utils/file_utils.dart';
 import 'package:path/path.dart' as p;
 
@@ -15,6 +17,7 @@ class SuccessScreen extends StatefulWidget {
   final String fileName;
   final int fileSize;
   final int totalPages;
+  final String? password;
 
   const SuccessScreen({
     super.key,
@@ -23,6 +26,7 @@ class SuccessScreen extends StatefulWidget {
     required this.fileName,
     required this.fileSize,
     required this.totalPages,
+    this.password,
   });
 
   @override
@@ -58,30 +62,42 @@ class _SuccessScreenState extends State<SuccessScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            PdfViewScreen(path: widget.filePath, title: widget.fileName),
+        builder: (context) => PdfViewScreen(
+          path: widget.filePath,
+          title: widget.fileName,
+          initialPassword: widget.password,
+        ),
       ),
     );
   }
 
   void _goHome(BuildContext context) {
-    Navigator.popUntil(context, (route) => route.isFirst);
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => Navigation()),
+      (route) => route.isFirst,
+    );
   }
 
   Future<void> _saveToDownloads(BuildContext context) async {
     try {
+      final settings = context.read<SettingsProvider>();
       final savedPath = await FileUtils.saveToDevice(
         sourcePath: widget.filePath,
         fileName: widget.fileName,
+        storageLocation: settings.storageLocation,
       );
 
       if (savedPath != null) {
-        final finalFileName = p.basename(savedPath);
+        final folderName = settings.storageLocationDisplay;
+        final finalFileName = savedPath.startsWith('content://')
+            ? widget.fileName
+            : p.basename(savedPath);
         // 7. Success message
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Saved to Download/RedPdf/$finalFileName'),
+            content: Text('Saved to $folderName/$finalFileName'),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
             showCloseIcon: true,
@@ -101,6 +117,10 @@ class _SuccessScreenState extends State<SuccessScreen> {
   }
 
   Future<String?> _askPassword(BuildContext context) async {
+    if (widget.password != null && widget.password!.isNotEmpty) {
+      return widget.password;
+    }
+
     final appColors = Theme.of(context).appColors;
     String? password;
     final textController = TextEditingController();
@@ -258,6 +278,13 @@ class _SuccessScreenState extends State<SuccessScreen> {
                             child: PdfViewer.file(
                               widget.filePath,
                               passwordProvider: () => _askPassword(context),
+                              params: PdfViewerParams(
+                                keyHandlerParams:
+                                    const PdfViewerKeyHandlerParams(enabled: false),
+                                errorBannerBuilder:
+                                    (context, error, stackTrace, documentRef) =>
+                                        const SizedBox.shrink(),
+                              ),
                             ),
                           ),
                         ),
@@ -354,11 +381,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                   child: SizedBox(
                     height: 56,
                     child: TextButton.icon(
-                      onPressed: () => Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (context) => HomeScreen()),
-                        (route) => false,
-                      ),
+                      onPressed: () => _goHome(context),
                       style: TextButton.styleFrom(
                         backgroundColor: appColors.primary!.withValues(
                           alpha: 0.1,

@@ -25,10 +25,10 @@ class ExportSettingsScreen extends StatefulWidget {
 }
 
 class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
-  final TextEditingController _fileNameController = TextEditingController(
-    text: 'Project_Final_Draft',
-  );
+  final TextEditingController _fileNameController = TextEditingController();
   final TextEditingController _userPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   final TextEditingController _ownerPasswordController =
       TextEditingController();
 
@@ -36,6 +36,9 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
   bool _securityEnabled = false;
   bool _allowPrinting = true;
   bool _allowCopying = true;
+  bool _obscureUserPassword = true;
+  bool _obscureConfirmPassword = true;
+  bool _obscureOwnerPassword = true;
 
   Future<Uint8List> _processImage(File file) async {
     if (_isHighCompression) {
@@ -64,7 +67,7 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
         format = spdf.PdfPageSize.legal;
         break;
     }
-    
+
     // Syncfusion handles orientation separately, but we can return the size object here.
     // If it's landscape, we swap width and height.
     if (settings.defaultOrientation == PdfPageOrientation.landscape) {
@@ -100,26 +103,29 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
     for (var imageFile in widget.images) {
       final imageBytes = await _processImage(imageFile);
       final spdf.PdfBitmap image = spdf.PdfBitmap(imageBytes);
-      
+
       final spdf.PdfPage page = document.pages.add();
-      
+
       final double imgWidth = image.width.toDouble();
       final double imgHeight = image.height.toDouble();
       final double pageWidth = page.getClientSize().width;
       final double pageHeight = page.getClientSize().height;
-      
+
       double drawWidth = pageWidth;
       double drawHeight = (imgHeight / imgWidth) * pageWidth;
-      
+
       if (drawHeight > pageHeight) {
-         drawHeight = pageHeight;
-         drawWidth = (imgWidth / imgHeight) * pageHeight;
+        drawHeight = pageHeight;
+        drawWidth = (imgWidth / imgHeight) * pageHeight;
       }
-      
+
       final double x = (pageWidth - drawWidth) / 2;
       final double y = (pageHeight - drawHeight) / 2;
 
-      page.graphics.drawImage(image, Rect.fromLTWH(x, y, drawWidth, drawHeight));
+      page.graphics.drawImage(
+        image,
+        Rect.fromLTWH(x, y, drawWidth, drawHeight),
+      );
     }
 
     final List<int> bytesList = document.saveSync();
@@ -127,13 +133,17 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
     document.dispose();
 
     final dir = await getApplicationDocumentsDirectory();
-    final name = _fileNameController.text.trim().isEmpty
-        ? 'Untitled_Document'
-        : _fileNameController.text;
+    final enteredName = _fileNameController.text.trim();
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final baseName = enteredName.isEmpty
+        ? 'REDPDF_$timestamp'
+        : (enteredName.toLowerCase().endsWith('.pdf')
+              ? enteredName.substring(0, enteredName.length - 4)
+              : enteredName);
 
     final uniquePath = await FileUtils.getUniqueFilePath(
       dir.path,
-      '$name.pdf',
+      '$baseName.pdf',
     );
     final file = File(uniquePath);
     final finalFileName = p.basename(uniquePath);
@@ -159,10 +169,48 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
       fileName: finalFileName,
       fileSize: bytes.length,
       totalPages: widget.images.length,
+      password: _securityEnabled && _userPasswordController.text.isNotEmpty
+          ? _userPasswordController.text
+          : null,
     );
   }
 
   void _startProcessing() {
+    if (_securityEnabled) {
+      final password = _userPasswordController.text;
+      final confirmPassword = _confirmPasswordController.text;
+
+      if (password.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please enter a password'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      if (confirmPassword.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please confirm your password'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      if (password != confirmPassword) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Passwords do not match'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -276,12 +324,6 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionTitle('FILE DETAILS', appColors),
-              Text(
-                'File Name',
-                style: TextStyle(color: appColors.subtitle, fontSize: 13),
-              ),
-              const SizedBox(height: 8),
               Container(
                 decoration: BoxDecoration(
                   color: appColors.surface,
@@ -294,6 +336,10 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
                   controller: _fileNameController,
                   style: TextStyle(color: appColors.text),
                   decoration: InputDecoration(
+                    hintText: 'Enter file name (optional)',
+                    hintStyle: TextStyle(
+                      color: appColors.subtitle?.withValues(alpha: 0.6),
+                    ),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 20,
                       vertical: 16,
@@ -359,6 +405,7 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
               //   onTap: () => _showPageSizeDialog(context, settings),
               // ),
               ListTile(
+                dense: true,
                 title: Text(
                   'Page Size',
                   style: TextStyle(
@@ -379,6 +426,7 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
               ),
               ListTile(
                 // contentPadding: EdgeInsets.symmetric(vertical: 0),
+                dense: true,
                 title: Text(
                   'Page Orientation',
                   style: TextStyle(
@@ -397,9 +445,6 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
 
                 onTap: () => _showOrientationDialog(context, settings),
               ),
-              // const SizedBox(height: 24),
-              // _buildListTile(context, Icons.insert_drive_file_outlined),
-              // const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -428,8 +473,9 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
                   ),
                   child: TextField(
                     controller: _userPasswordController,
-                    obscureText: true,
+                    obscureText: _obscureUserPassword,
                     style: TextStyle(color: appColors.text),
+                    onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 20,
@@ -440,14 +486,89 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
                       hintStyle: TextStyle(
                         color: appColors.subtitle?.withValues(alpha: 0.5),
                       ),
-                      suffixIcon: const Icon(
-                        Icons.visibility_off,
-                        color: Colors.grey,
-                        size: 20,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureUserPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.grey,
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscureUserPassword = !_obscureUserPassword;
+                          });
+                        },
                       ),
                     ),
                   ),
                 ),
+                const SizedBox(height: 16),
+                Text(
+                  'Confirm Password',
+                  style: TextStyle(color: appColors.subtitle, fontSize: 13),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  decoration: BoxDecoration(
+                    color: appColors.surface,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color:
+                          (_confirmPasswordController.text.isNotEmpty &&
+                              _userPasswordController.text !=
+                                  _confirmPasswordController.text)
+                          ? Colors.red
+                          : (appColors.divider ?? Colors.grey.shade200),
+                    ),
+                  ),
+                  child: TextField(
+                    controller: _confirmPasswordController,
+                    obscureText: _obscureConfirmPassword,
+                    style: TextStyle(color: appColors.text),
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 16,
+                      ),
+                      border: InputBorder.none,
+                      hintText: 'Confirm opening password',
+                      hintStyle: TextStyle(
+                        color: appColors.subtitle?.withValues(alpha: 0.5),
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureConfirmPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.grey,
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscureConfirmPassword = !_obscureConfirmPassword;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+                if (_confirmPasswordController.text.isNotEmpty &&
+                    _userPasswordController.text !=
+                        _confirmPasswordController.text) ...[
+                  const SizedBox(height: 6),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 16.0),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Passwords do not match',
+                        style: TextStyle(color: Colors.red, fontSize: 12),
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -477,7 +598,7 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
                   ),
                   child: TextField(
                     controller: _ownerPasswordController,
-                    obscureText: true,
+                    obscureText: _obscureOwnerPassword,
                     style: TextStyle(color: appColors.text),
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(
@@ -489,10 +610,19 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
                       hintStyle: TextStyle(
                         color: appColors.subtitle?.withValues(alpha: 0.5),
                       ),
-                      suffixIcon: const Icon(
-                        Icons.visibility_off,
-                        color: Colors.grey,
-                        size: 20,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureOwnerPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.grey,
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscureOwnerPassword = !_obscureOwnerPassword;
+                          });
+                        },
                       ),
                     ),
                   ),
@@ -671,9 +801,6 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: isSelected
-            ? appColors.primary!.withValues(alpha: 0.05)
-            : appColors.surface,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: isSelected
@@ -681,24 +808,33 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
               : (appColors.divider ?? Colors.transparent),
         ),
       ),
-      child: CheckboxListTile(
-        title: Text(
-          title,
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-            color: appColors.text,
+      child: Material(
+        color: isSelected
+            ? appColors.primary!.withValues(alpha: 0.05)
+            : appColors.surface,
+        borderRadius: BorderRadius.circular(24),
+        clipBehavior: Clip.antiAlias,
+        child: CheckboxListTile(
+          title: Text(
+            title,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+              color: appColors.text,
+            ),
           ),
+          value: isSelected,
+          onChanged: onChanged,
+          activeColor: appColors.primary,
+          checkColor: Colors.white,
+          side: BorderSide(
+            color:
+                appColors.subtitle?.withValues(alpha: 0.3) ??
+                Colors.grey.shade300,
+            width: 2,
+          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
         ),
-        value: isSelected,
-        onChanged: onChanged,
-        activeColor: appColors.primary,
-        checkColor: Colors.white,
-        side: BorderSide(
-          color: appColors.subtitle?.withValues(alpha: 0.3) ?? Colors.grey.shade300,
-          width: 2,
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       ),
     );
   }
@@ -754,5 +890,14 @@ class _ExportSettingsScreenState extends State<ExportSettingsScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _fileNameController.dispose();
+    _userPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    _ownerPasswordController.dispose();
+    super.dispose();
   }
 }
